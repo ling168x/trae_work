@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "key": "welcome_text",
+      "value": "Welcome to the game!"
+    },
+    {
+      "key": "start_button",
+      "value": "Start Game"
+    },
+    {
+      "key": "settings_button",
+      "value": "Settings"
+    },
+    {
+      "key": "exit_button",
+      "value": "Exit"
+    }
+  ]
+}
