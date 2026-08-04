@@ -24,6 +24,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
+# K线缓存模块
+from kline_cache import get_klines
+
 warnings.filterwarnings("ignore")
 
 # ============================================================
@@ -31,13 +34,15 @@ warnings.filterwarnings("ignore")
 # ============================================================
 MARKET_CAP_MIN = 30  # 最小市值（亿）
 LIMIT_UP_DAYS = 10  # 涨停检测天数
-LIMIT_UP_THRESHOLD = 9.5  # 涨停阈值（%）
+LIMIT_UP_THRESHOLD_MAIN = 9.5  # 主板涨停阈值（%）
+LIMIT_UP_THRESHOLD_STAR = 19.5  # 科创/创业板涨停阈值（%）
+MAX_MA5_DEVIATION = 10  # 偏离5日线最大百分比
 MAX_RETRIES = 3  # 最大重试次数
 REQUEST_TIMEOUT = 15  # 请求超时（秒）
 REQUEST_INTERVAL = 0.3  # 请求间隔（秒）
-DEFAULT_MIN_SCORE = 10  # 默认最低入选分数
+DEFAULT_MIN_SCORE = 20  # 默认最低入选分数
 DEFAULT_TOP_N = 50  # 默认输出数量
-MAX_WORKERS = 20  # 并发线程数
+MAX_WORKERS = 5  # 并发线程数
 MIN_TRADING_DAYS = 120  # 用于计算均线的最少交易日
 
 HEADERS = {
@@ -83,6 +88,28 @@ def get_market_prefix(code: str) -> str:
     elif code.startswith(("4", "8")):
         return "bj"
     return "sz"
+
+
+def get_market_type(code: str) -> str:
+    """
+    判断股票市场类型。
+    返回: 'star'(科创板20%), 'chinext'(创业板20%), 'main'(主板10%)
+    """
+    # 科创板：688开头（上海）
+    if code.startswith("688"):
+        return "star"
+    # 创业板：300/301开头（深圳）
+    if code.startswith(("300", "301")):
+        return "chinext"
+    return "main"
+
+
+def get_limit_up_threshold(code: str) -> float:
+    """根据股票代码获取涨停阈值（%）。"""
+    market_type = get_market_type(code)
+    if market_type in ("star", "chinext"):
+        return LIMIT_UP_THRESHOLD_STAR
+    return LIMIT_UP_THRESHOLD_MAIN
 
 
 # ============================================================
@@ -207,35 +234,23 @@ def fetch_all_spot() -> List[Dict[str, Any]]:
 
 def fetch_kline_tencent(code: str) -> Optional[Dict[str, Any]]:
     """
-    从腾讯财经API获取单只股票的K线历史数据，计算MA5/MA10/MA20/MA60、RSI，
-    并检测近10日是否有涨停。
+    获取单只股票的K线历史数据（带本地缓存），计算MA5/MA10/MA20/MA60、RSI，
+    并检测近10日是否有涨停（区分科创/创业板20%与主板10%）。
+    涨停判定：涨幅达到涨停阈值且尾盘封住涨停板（收盘价=涨停价）。
     返回: 均线/K线数据字典，失败返回None。
     """
-    prefix = get_market_prefix(code)
-    full_code = f"{prefix}{code}"
-    url = (
-        "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
-        f"?param={full_code},day,,,{MIN_TRADING_DAYS + 10},qfq"
-    )
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        data = resp.json()
-        if data.get("code") != 0:
-            return None
-        stock_data = data.get("data", {}).get(full_code)
-        if not stock_data:
-            return None
-        klines = stock_data.get("qfqday") or stock_data.get("day")
+        # 使用缓存模块获取K线数据
+        klines = get_klines(code, min_days=MIN_TRADING_DAYS)
         if not klines or len(klines) < MIN_TRADING_DAYS:
             return None
 
-        # 腾讯K线格式: [date, open, close, high, low, volume]
-        closes = [safe_float(k[2]) for k in klines]
-        highs = [safe_float(k[3]) for k in klines]
-        lows = [safe_float(k[4]) for k in klines]
-        opens = [safe_float(k[1]) for k in klines]
-        dates = [k[0] for k in klines]
+        # 缓存返回的格式: [{"date", "open", "close", "high", "low", "volume", "amount"}, ...]
+        closes = [k["close"] for k in klines]
+        highs = [k["high"] for k in klines]
+        lows = [k["low"] for k in klines]
+        opens = [k["open"] for k in klines]
+        dates = [k["date"] for k in klines]
 
         # 计算均线
         ma5 = sum(closes[-5:]) / 5
@@ -251,19 +266,28 @@ def fetch_kline_tencent(code: str) -> Optional[Dict[str, Any]]:
         avg_loss = sum(losses) / 14
         rsi = 100.0 if avg_loss == 0 else round(100.0 - (100.0 / (1.0 + avg_gain / avg_loss)), 2)
 
-        # 检测近10日涨停（用每日涨跌幅近似）
+        # 获取该股票的涨停阈值
+        limit_up_threshold = get_limit_up_threshold(code)
+
+        # 检测近10日涨停，且尾盘封住涨停板
         has_limit_up = False
         limit_up_date = None
+        limit_up_sealed = False
         recent = klines[-LIMIT_UP_DAYS - 1:]
         for i in range(1, len(recent)):
-            prev_close = safe_float(recent[i - 1][2])
-            cur_close = safe_float(recent[i][2])
+            prev_close = recent[i - 1]["close"]
+            cur_close = recent[i]["close"]
+            cur_high = recent[i]["high"]
             if prev_close > 0:
                 chg = (cur_close - prev_close) / prev_close * 100
-                if chg >= LIMIT_UP_THRESHOLD:
+                if chg >= limit_up_threshold:
                     has_limit_up = True
-                    limit_up_date = recent[i][0]
+                    limit_up_date = recent[i]["date"]
+                    limit_up_sealed = (cur_close >= cur_high - 0.001) and (cur_close >= prev_close * (1 + limit_up_threshold / 100) - 0.001)
                     break
+
+        # 计算偏离5日线的百分比
+        ma5_deviation = abs((closes[-1] - ma5) / ma5 * 100) if ma5 > 0 else 0
 
         return {
             "ma5": ma5,
@@ -275,9 +299,13 @@ def fetch_kline_tencent(code: str) -> Optional[Dict[str, Any]]:
             "high": highs[-1],
             "low": lows[-1],
             "open": opens[-1],
-            "volume": safe_float(klines[-1][5]),
+            "volume": klines[-1]["volume"],
             "has_limit_up": has_limit_up,
             "limit_up_date": limit_up_date,
+            "limit_up_sealed": limit_up_sealed,
+            "limit_up_threshold": limit_up_threshold,
+            "ma5_deviation": round(ma5_deviation, 2),
+            "market_type": get_market_type(code),
         }
 
     except Exception:
@@ -574,6 +602,8 @@ def generate_html(results: List[Dict], output_path: str):
             <td>{r.get('roe','—')}</td>
             <td>{r.get('eps','—')}</td>
             <td>{r.get('industry','—')}</td>
+            <td>{r.get('market_type','—')}</td>
+            <td>{r.get('ma5_dev','—')}</td>
             <td>{r.get('support','—')}</td>
             <td>{r.get('resistance','—')}</td>
             <td>{r.get('risk_reward','—')}</td>
@@ -633,7 +663,7 @@ def generate_html(results: List[Dict], output_path: str):
                 <th>买入建议</th>
                 <th>涨跌幅</th><th>成交额</th><th>换手率</th><th>市值</th>
                 <th>PE</th><th>PB</th><th>ROE</th><th>EPS</th><th>行业</th>
-                <th>支撑位</th><th>压力位</th><th>收益风险比</th><th>近10日涨停</th>
+                <th>支撑位</th><th>压力位</th><th>收益风险比</th><th>市场类型</th><th>偏离MA5</th><th>近10日涨停(封板)</th>
             </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -666,11 +696,12 @@ def print_console(results: List[Dict]):
         print(f"  {'─' * 68}")
         print(f"      四维评分  总分:{r['total']:>2}  均线:{dims['ma']}  量价:{dims['volume']}  K线:{dims['kline']}  资金:{dims['fund']}")
         print(f"      行情数据  涨幅:{r['pct_chg']}%  成交额:{r['amount']}  换手率:{r['turnover']}  市值:{r['mktcap']}")
+        print(f"      市场类型  {r.get('market_type','—')}  偏离5日线:{r.get('ma5_dev','—')}")
         print(f"      基本面    行业:{r.get('industry','—')}  PE:{r.get('pe','—')}  PB:{r.get('pb','—')}  ROE:{r.get('roe','—')}  EPS:{r.get('eps','—')}")
         print(f"      财务健康  净利润增长:{r.get('profit_growth','—')}  资产负债率:{r.get('debt_ratio','—')}")
         print(f"      技术位    支撑位:{r.get('support','—')}  压力位:{r.get('resistance','—')}  收益风险比:{r.get('risk_reward','—')}")
         if r.get("limit_up") and r["limit_up"] != "无":
-            print(f"      涨停记录  近10日涨停: {r['limit_up']}")
+            print(f"      涨停记录  近10日涨停: {r['limit_up']}  偏离MA5: {r.get('ma5_dev','—')}")
         reasons = r.get("buy_reasons", [])
         if reasons:
             print(f"      买入理由  {', '.join(reasons)}")
@@ -687,9 +718,36 @@ def process_stock(stock: Dict, args) -> Optional[Dict]:
     # 获取K线数据
     ma_data = fetch_kline_tencent(code)
 
-    # 涨停过滤
-    if ma_data and not args.no_filter and not ma_data.get("has_limit_up"):
-        return None
+    # 确定过滤模式（--no-filter 等同于 mode=1）
+    filter_mode = getattr(args, "filter_mode", 2)
+    if args.no_filter:
+        filter_mode = 1
+
+    # 模式2/3：近10天必须有过涨停且尾盘封板
+    if filter_mode >= 2 and ma_data:
+        if not ma_data.get("has_limit_up"):
+            return None
+        if not ma_data.get("limit_up_sealed"):
+            return None
+
+    # 模式3：MA5偏离<=15%，且回踩5日线，且10日线有支撑
+    if filter_mode >= 3 and ma_data:
+        # MA5偏离不超过15%
+        if ma_data.get("ma5_deviation", 0) > 15:
+            return None
+        close = ma_data["close"]
+        ma5 = ma_data["ma5"]
+        ma10 = ma_data["ma10"]
+        # 回踩5日线：收盘价距5日线在±3%以内
+        if ma5 > 0:
+            pullback_ratio = abs(close - ma5) / ma5 * 100
+            if pullback_ratio > 3:
+                return None
+        # 10日线有支撑：收盘价在10日线上方或附近（下方不超过2%）
+        if ma10 > 0:
+            dist_to_ma10 = (close - ma10) / ma10 * 100
+            if dist_to_ma10 < -2:
+                return None
 
     # 四维评分
     s1 = score_ma_position(ma_data)
@@ -708,7 +766,11 @@ def process_stock(stock: Dict, args) -> Optional[Dict]:
     pb = stock.get("pb", 0)
     limit_up_str = "无"
     if ma_data and ma_data.get("limit_up_date"):
-        limit_up_str = str(ma_data["limit_up_date"])
+        sealed_str = "封板" if ma_data.get("limit_up_sealed") else "未封板"
+        market_label = {"star": "科创", "chinext": "创业板", "main": "主板"}.get(
+            ma_data.get("market_type", "main"), "主板")
+        threshold = ma_data.get("limit_up_threshold", 10)
+        limit_up_str = f"{ma_data['limit_up_date']}({market_label}{threshold:.0f}%-{sealed_str})"
 
     result = {
         "code": code,
@@ -720,6 +782,9 @@ def process_stock(stock: Dict, args) -> Optional[Dict]:
         "turnover": f"{turnover:.2f}%",
         "mktcap": fmt_amount(mktcap * 10000),
         "limit_up": limit_up_str,
+        "ma5_dev": f"{ma_data.get('ma5_deviation', 0):.2f}%" if ma_data else "—",
+        "market_type": {"star": "科创板", "chinext": "创业板", "main": "主板"}.get(
+            ma_data.get("market_type", "main") if ma_data else "main", "主板"),
         "pe": f"{pe:.2f}",
         "pb": f"{pb:.2f}",
     }
@@ -765,7 +830,12 @@ def main():
     )
     parser.add_argument(
         "--no-filter", action="store_true",
-        help="不过滤近10日涨停条件"
+        help="不过滤近10日涨停条件（等同 --filter-mode 1）"
+    )
+    parser.add_argument(
+        "--filter-mode", type=int, default=2,
+        choices=[1, 2, 3],
+        help="过滤模式: 1=仅积分, 2=积分+涨停+封板, 3=积分+涨停+封板+MA5偏离15%+回踩5日线+10日线支撑"
     )
     parser.add_argument(
         "--workers", type=int, default=MAX_WORKERS,
@@ -773,8 +843,24 @@ def main():
     )
     args = parser.parse_args()
 
+    # 确定过滤模式
+    if args.no_filter:
+        args.filter_mode = 1
+
+    mode_desc = {
+        1: "仅积分，不过滤涨停",
+        2: "积分 + 近10日涨停 + 尾盘封板",
+        3: "积分 + 涨停 + 封板 + MA5偏离<=15% + 回踩5日线 + 10日线支撑",
+    }
+
     print("=" * 72)
     print("  四维共振选股器 v3.0")
+    print(f"  过滤模式: 模式{args.filter_mode} - {mode_desc[args.filter_mode]}")
+
+    # 显示缓存统计
+    from kline_cache import get_cache_stats
+    cache_stats = get_cache_stats()
+    print(f"  K线缓存: {cache_stats['total']} 只股票, {cache_stats.get('size_mb', 0)} MB")
     print("=" * 72)
 
     # Step 1: 获取全A股实时行情（含预筛选）
@@ -784,7 +870,7 @@ def main():
         return
 
     # Step 2: 使用线程池并发获取K线数据并评分
-    print("[2/4] 计算均线与K线形态（并发）...")
+    print("[2/4] 计算均线与K线形态（并发，使用本地缓存）...")
     results = []
     total = len(all_stocks)
     completed = 0
