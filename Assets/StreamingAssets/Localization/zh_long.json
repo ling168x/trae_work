@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "key": "welcome_text",
+      "value": "欢迎来到游戏！这是一个非常长的欢迎文本，用于测试UI是否会出现超框问题。"
+    },
+    {
+      "key": "start_button",
+      "value": "开始游戏"
+    },
+    {
+      "key": "settings_button",
+      "value": "设置"
+    },
+    {
+      "key": "exit_button",
+      "value": "退出"
+    }
+  ]
+}
