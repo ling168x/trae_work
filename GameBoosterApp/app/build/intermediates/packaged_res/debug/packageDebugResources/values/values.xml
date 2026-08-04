@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="card_background">#16213e</color>
+    <color name="dark_background">#1a1a2e</color>
+    <color name="gray">#AAAAAA</color>
+    <color name="green">#00FF00</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="red">#FF0000</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="white">#FFFFFF</color>
+    <color name="yellow">#FFD700</color>
+    <string name="app_name">GameBooster</string>
+    <string name="balanced">平衡模式</string>
+    <string name="boost_disabled">已关闭加速</string>
+    <string name="boost_enabled">已开启加速</string>
+    <string name="boost_level">加速等级</string>
+    <string name="boost_title">游戏加速</string>
+    <string name="cpu_optimization">CPU优化</string>
+    <string name="current_status">当前状态</string>
+    <string name="gpu_optimization">GPU优化</string>
+    <string name="high_performance">高性能模式</string>
+    <string name="memory_cleanup">内存清理</string>
+    <string name="network_optimization">网络优化</string>
+    <string name="power_saving">省电模式</string>
+    <string name="root_available">已获取</string>
+    <string name="root_required_hint">部分高级功能需要Root权限</string>
+    <string name="root_status">Root权限</string>
+    <string name="root_unavailable">未获取</string>
+    <style name="Theme.GameBooster" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/teal_200</item>
+    </style>
+</resources>

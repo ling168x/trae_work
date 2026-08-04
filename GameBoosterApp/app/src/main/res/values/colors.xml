@@ -1,0 +1,12 @@
+<resources>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="dark_background">#1a1a2e</color>
+    <color name="card_background">#16213e</color>
+    <color name="white">#FFFFFF</color>
+    <color name="gray">#AAAAAA</color>
+    <color name="green">#00FF00</color>
+    <color name="red">#FF0000</color>
+    <color name="yellow">#FFD700</color>
+</resources>

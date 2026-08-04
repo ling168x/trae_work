@@ -1,0 +1,7 @@
+scrapy>=2.11.0
+PyQt6>=6.6.0
+# 可选：动态渲染模式需要
+# scrapy-playwright>=0.0.40
+# playwright>=1.40.0
+# 可选：代理增强
+# scrapy-proxy-middleware>=0.3.0

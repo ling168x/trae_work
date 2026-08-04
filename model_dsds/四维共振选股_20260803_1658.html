@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>四维共振选股器 v3.0 - 扫描报告</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f5f7fa; color: #333; }
+    .header { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); color: #fff; padding: 30px 40px; text-align: center; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    .header .subtitle { font-size: 14px; opacity: 0.8; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px 40px; }
+    .summary { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+    .summary-card { background: #fff; border-radius: 10px; padding: 20px 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); flex: 1; min-width: 180px; text-align: center; }
+    .summary-card .num { font-size: 36px; font-weight: 700; color: #0f3460; }
+    .summary-card .label { font-size: 13px; color: #888; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    th { background: #0f3460; color: #fff; padding: 12px 10px; font-size: 13px; text-align: center; white-space: nowrap; }
+    td { padding: 10px; font-size: 13px; text-align: center; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f0f4ff; }
+    .score-total { font-weight: 700; font-size: 16px; color: #e74c3c; }
+    .footer { text-align: center; padding: 30px; color: #999; font-size: 12px; }
+    .risk-warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; color: #856404; font-size: 13px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>四维共振选股器 v3.0</h1>
+    <div class="subtitle">生成时间: 2026-08-03 16:58 | 入选股票: 50 只</div>
+</div>
+<div class="container">
+    <div class="summary">
+        <div class="summary-card"><div class="num">50</div><div class="label">入选股票</div></div>
+        <div class="summary-card"><div class="num">0</div><div class="label">高分标的(≥24)</div></div>
+        <div class="summary-card"><div class="num">20</div><div class="label">中高分标的(≥16)</div></div>
+    </div>
+    <div class="risk-warning">
+        <strong>风险提示：</strong>本工具仅为辅助决策工具，不构成任何投资建议。四维评分基于历史数据，不能保证未来收益。
+        近10日有涨停的股票可能处于高位，追高风险较大。投资有风险，入市需谨慎。
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>排名</th><th>名称</th><th>代码</th><th>总分</th>
+                <th>均线</th><th>量价</th><th>K线</th><th>资金</th>
+                <th>涨跌幅</th><th>成交额</th><th>换手率</th><th>市值</th><th>近10日涨停</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>首开股份</td>
+            <td>600376</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+4.97</td>
+            <td>11.73亿</td>
+            <td>11.14%</td>
+            <td>108.86亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>华电辽能</td>
+            <td>600396</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+10.00</td>
+            <td>34.10亿</td>
+            <td>15.62%</td>
+            <td>228.42亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>泛微网络</td>
+            <td>603039</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+6.07</td>
+            <td>24.24亿</td>
+            <td>19.58%</td>
+            <td>122.10亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>福昕软件</td>
+            <td>688095</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.71</td>
+            <td>10.38亿</td>
+            <td>16.07%</td>
+            <td>63.51亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>顺钠股份</td>
+            <td>000533</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+9.99</td>
+            <td>12.61亿</td>
+            <td>16.88%</td>
+            <td>79.10亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>平潭发展</td>
+            <td>000592</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+6.35</td>
+            <td>11.72亿</td>
+            <td>10.04%</td>
+            <td>119.77亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>风华高科</td>
+            <td>000636</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+5.29</td>
+            <td>92.08亿</td>
+            <td>15.65%</td>
+            <td>601.18亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>美利云</td>
+            <td>000815</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+10.01</td>
+            <td>15.26亿</td>
+            <td>13.33%</td>
+            <td>116.11亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>立新能源</td>
+            <td>001258</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.16</td>
+            <td>17.85亿</td>
+            <td>15.17%</td>
+            <td>118.81亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td>利欧股份</td>
+            <td>002131</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+10.09</td>
+            <td>70.01亿</td>
+            <td>24.00%</td>
+            <td>347.39亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td>中超控股</td>
+            <td>002471</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+9.65</td>
+            <td>11.94亿</td>
+            <td>15.89%</td>
+            <td>77.75亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td>雪人集团</td>
+            <td>002639</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+5.79</td>
+            <td>10.62亿</td>
+            <td>12.93%</td>
+            <td>98.23亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td>埃斯顿</td>
+            <td>002747</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.40</td>
+            <td>25.44亿</td>
+            <td>10.50%</td>
+            <td>297.60亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td>日科化学</td>
+            <td>300214</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+10.95</td>
+            <td>10.15亿</td>
+            <td>17.66%</td>
+            <td>60.30亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td>双杰电气</td>
+            <td>300444</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.94</td>
+            <td>10.87亿</td>
+            <td>16.09%</td>
+            <td>87.14亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td>太辰光</td>
+            <td>300570</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.94</td>
+            <td>23.20亿</td>
+            <td>10.36%</td>
+            <td>269.12亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td>利和兴</td>
+            <td>301013</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+4.73</td>
+            <td>21.39亿</td>
+            <td>28.07%</td>
+            <td>96.70亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td>易点天下</td>
+            <td>301171</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+6.07</td>
+            <td>35.18亿</td>
+            <td>21.93%</td>
+            <td>200.03亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td>联特科技</td>
+            <td>301205</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+14.89</td>
+            <td>33.21亿</td>
+            <td>16.16%</td>
+            <td>330.28亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td>托伦斯</td>
+            <td>301583</td>
+            <td class="score-total">16</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>8</td>
+            <td>+3.48</td>
+            <td>19.60亿</td>
+            <td>41.91%</td>
+            <td>287.11亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td>N聚仁</td>
+            <td>920258</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+250.89</td>
+            <td>5.87亿</td>
+            <td>94.29%</td>
+            <td>62.88亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td>N长鹰</td>
+            <td>920238</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+5.77</td>
+            <td>5.41亿</td>
+            <td>36.49%</td>
+            <td>73.62亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td>诺德股份</td>
+            <td>600110</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+1.84</td>
+            <td>7.66亿</td>
+            <td>5.38%</td>
+            <td>144.19亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td>莲花控股</td>
+            <td>600186</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+2.83</td>
+            <td>16.03亿</td>
+            <td>10.71%</td>
+            <td>149.88亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td>华胜天成</td>
+            <td>600410</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.35</td>
+            <td>10.64亿</td>
+            <td>6.87%</td>
+            <td>155.70亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>26</td>
+            <td>卧龙电驱</td>
+            <td>600580</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+8.90</td>
+            <td>35.89亿</td>
+            <td>6.85%</td>
+            <td>539.09亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>27</td>
+            <td>用友网络</td>
+            <td>600588</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+1.08</td>
+            <td>27.56亿</td>
+            <td>7.09%</td>
+            <td>382.70亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>28</td>
+            <td>大位科技</td>
+            <td>600589</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+7.45</td>
+            <td>10.72亿</td>
+            <td>9.41%</td>
+            <td>117.49亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td>乐山电力</td>
+            <td>600644</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+10.05</td>
+            <td>5.92亿</td>
+            <td>10.36%</td>
+            <td>59.51亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td>哈药股份</td>
+            <td>600664</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+1.70</td>
+            <td>23.56亿</td>
+            <td>15.83%</td>
+            <td>150.86亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>31</td>
+            <td>华银电力</td>
+            <td>600744</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+5.77</td>
+            <td>14.22亿</td>
+            <td>9.72%</td>
+            <td>148.88亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>32</td>
+            <td>浪潮软件</td>
+            <td>600756</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+1.59</td>
+            <td>7.65亿</td>
+            <td>14.68%</td>
+            <td>58.00亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>33</td>
+            <td>北投科技</td>
+            <td>600936</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+9.98</td>
+            <td>6.76亿</td>
+            <td>7.15%</td>
+            <td>97.59亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>34</td>
+            <td>宿迁联盛</td>
+            <td>603065</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+8.07</td>
+            <td>7.41亿</td>
+            <td>12.92%</td>
+            <td>57.78亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>35</td>
+            <td>剑桥科技</td>
+            <td>603083</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.78</td>
+            <td>36.19亿</td>
+            <td>9.89%</td>
+            <td>497.76亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>36</td>
+            <td>恒尚节能</td>
+            <td>603137</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+2.04</td>
+            <td>8.37亿</td>
+            <td>18.13%</td>
+            <td>46.67亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>37</td>
+            <td>税友股份</td>
+            <td>603171</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+1.01</td>
+            <td>11.40亿</td>
+            <td>6.05%</td>
+            <td>187.24亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>38</td>
+            <td>美诺华</td>
+            <td>603538</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+2.87</td>
+            <td>10.59亿</td>
+            <td>12.52%</td>
+            <td>86.44亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>39</td>
+            <td>引力传媒</td>
+            <td>603598</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+4.33</td>
+            <td>6.62亿</td>
+            <td>13.90%</td>
+            <td>48.03亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>40</td>
+            <td>再升科技</td>
+            <td>603601</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+6.52</td>
+            <td>8.83亿</td>
+            <td>9.25%</td>
+            <td>97.10亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>41</td>
+            <td>天创时尚</td>
+            <td>603608</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+6.54</td>
+            <td>5.15亿</td>
+            <td>6.83%</td>
+            <td>76.85亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>42</td>
+            <td>杭电股份</td>
+            <td>603618</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+2.50</td>
+            <td>14.89亿</td>
+            <td>9.55%</td>
+            <td>158.67亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>43</td>
+            <td>五洲新春</td>
+            <td>603667</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.57</td>
+            <td>10.10亿</td>
+            <td>5.15%</td>
+            <td>205.75亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>44</td>
+            <td>火炬电子</td>
+            <td>603678</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.00</td>
+            <td>16.85亿</td>
+            <td>8.46%</td>
+            <td>198.98亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>45</td>
+            <td>百合花</td>
+            <td>603823</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+10.00</td>
+            <td>15.43亿</td>
+            <td>7.68%</td>
+            <td>214.35亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>46</td>
+            <td>数据港</td>
+            <td>603881</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+4.61</td>
+            <td>11.69亿</td>
+            <td>5.39%</td>
+            <td>218.96亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>47</td>
+            <td>一鸣食品</td>
+            <td>605179</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+10.02</td>
+            <td>7.71亿</td>
+            <td>9.62%</td>
+            <td>85.45亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>48</td>
+            <td>星环科技</td>
+            <td>688031</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.52</td>
+            <td>7.51亿</td>
+            <td>6.63%</td>
+            <td>113.38亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>49</td>
+            <td>绿的谐波</td>
+            <td>688017</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+2.73</td>
+            <td>50.23亿</td>
+            <td>8.70%</td>
+            <td>571.90亿</td>
+            <td>无</td>
+        </tr>
+        <tr>
+            <td>50</td>
+            <td>长光华芯</td>
+            <td>688048</td>
+            <td class="score-total">14</td>
+            <td>0</td>
+            <td>8</td>
+            <td>0</td>
+            <td>6</td>
+            <td>+3.92</td>
+            <td>29.60亿</td>
+            <td>7.19%</td>
+            <td>416.53亿</td>
+            <td>无</td>
+        </tr></tbody>
+    </table>
+</div>
+<div class="footer">
+    <p>四维共振选股器 v3.0 | 数据源: 新浪财经 + 腾讯财经 | 开发日期: 2026-08-03</p>
+    <p>本报告由程序自动生成，仅供参考，不构成投资建议。</p>
+</div>
+</body>
+</html>

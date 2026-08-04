@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "android_perf_tool"
+version = "1.0.0"
+description = "Android性能数据记录工具 - 类似PerfDog"
+requires-python = ">=3.8"
+dependencies = [
+    "aiofiles>=23.0.0",
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "matplotlib>=3.7.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.scripts]
+android-perf-tool = "android_perf_tool.cli:main"
+android-perf-tool-gui = "android_perf_tool.gui:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
