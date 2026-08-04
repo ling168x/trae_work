@@ -55,3 +55,8 @@ crashlytics-build.properties
 
 # 自己生成的UI扫描结果
 UI_Scan_Results/
+
+# K线缓存数据（文件太多，不适合放Git）
+model_dsds/kline_cache/
+model_dsds/__pycache__/
+model_dsds/*.html
