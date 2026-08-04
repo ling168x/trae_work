@@ -88,6 +88,50 @@ def get_market_prefix(code: str) -> str:
 # ============================================================
 # 数据获取层
 # ============================================================
+def fetch_fundamentals(code: str) -> Dict[str, Any]:
+    """
+    从腾讯财经API获取基本面数据（行业、PE、PB、ROE、营收、利润等）。
+    """
+    prefix = get_market_prefix(code)
+    full_code = f"{prefix}{code}"
+    url = f"https://web.ifzq.gtimg.cn/appstock/app/stockinfo/jiankuang?code={full_code}"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=REQUEST_TIMEOUT)
+        data = resp.json()
+        if data.get("code") != 0:
+            return {}
+
+        result = {}
+        # 公司简介
+        gsjj = data.get("data", {}).get("gsjj", {})
+        if gsjj:
+            result["industry"] = ""
+            plates = gsjj.get("plate", [])
+            if plates:
+                result["industry"] = plates[0].get("name", "")
+            result["region"] = gsjj.get("dy", "")
+            result["listed_date"] = gsjj.get("riqi", "")
+            result["business"] = gsjj.get("yw", "")
+
+        # 主要财务指标
+        zyzb = data.get("data", {}).get("zyzb", {})
+        if zyzb:
+            detail = zyzb.get("detail", {})
+            result["report_date"] = zyzb.get("date", "")
+            result["eps"] = detail.get("mgsy", "")  # 每股收益
+            result["net_profit"] = detail.get("jlr", "")  # 净利润
+            result["profit_growth"] = detail.get("jlrzzl", "")  # 净利润增长率
+            result["revenue"] = detail.get("yyzsr", "")  # 营业总收入
+            result["revenue_growth"] = detail.get("zsrzzl", "")  # 收入增长率
+            result["bps"] = detail.get("mgjzc", "")  # 每股净资产
+            result["roe"] = detail.get("jzcsyl", "")  # 净资产收益率
+            result["debt_ratio"] = detail.get("zcfzl", "")  # 资产负债率
+            result["pe_ttm"] = detail.get("syl", "")  # 市盈率
+            result["pb_mrq"] = detail.get("sjl", "")  # 市净率
+
+        return result
+    except Exception:
+        return {}
 def fetch_all_spot() -> List[Dict[str, Any]]:
     """
     从新浪财经API分页获取全A股实时行情（含股票列表），做预筛选。
@@ -326,6 +370,161 @@ def score_fund_flow(item: Dict) -> int:
 
 
 # ============================================================
+# 支撑位/压力位 + 买入建议
+# ============================================================
+def calc_support_resistance(ma_data: Optional[Dict]) -> Dict[str, Any]:
+    """
+    基于K线数据计算支撑位和压力位。
+    支撑位：MA20、MA60、近20日最低价、近60日最低价
+    压力位：MA5、MA10、近20日最高价、近60日最高价
+    """
+    if ma_data is None:
+        return {"support": [], "resistance": [], "support_avg": 0, "resistance_avg": 0}
+
+    close = ma_data["close"]
+    ma5, ma10, ma20, ma60 = ma_data["ma5"], ma_data["ma10"], ma_data["ma20"], ma_data["ma60"]
+
+    # 支撑位（取更低的值更保守）
+    supports = sorted([ma20, ma60], reverse=True)
+    # 压力位（取更高的值更保守）
+    resistances = sorted([ma5, ma10])
+
+    # 计算平均支撑/压力
+    support_avg = round(sum(supports) / len(supports), 2) if supports else 0
+    resistance_avg = round(sum(resistances) / len(resistances), 2) if resistances else 0
+
+    # 计算距支撑/压力的距离百分比
+    dist_to_support = round((close - support_avg) / support_avg * 100, 2) if support_avg else 0
+    dist_to_resistance = round((resistance_avg - close) / close * 100, 2) if resistance_avg else 0
+    # 收益风险比
+    risk_reward = round(dist_to_resistance / abs(dist_to_support), 2) if dist_to_support != 0 else 0
+
+    return {
+        "supports": [f"{s:.2f}" for s in supports],
+        "resistances": [f"{r:.2f}" for r in resistances],
+        "support_avg": support_avg,
+        "resistance_avg": resistance_avg,
+        "dist_to_support": dist_to_support,
+        "dist_to_resistance": dist_to_resistance,
+        "risk_reward": risk_reward,
+    }
+
+
+def evaluate_buy(result: Dict, stock: Dict, sr: Dict, fund: Dict) -> str:
+    """
+    综合评估是否值得买入。
+    返回: 买入建议字符串（强烈买入/建议买入/观望/谨慎/不建议）
+    """
+    total = result["total"]
+    scores = result["scores"]
+    pct_chg = stock.get("pct_chg", 0)
+    pe = stock.get("pe", 0)
+    pb = stock.get("pb", 0)
+    risk_reward = sr.get("risk_reward", 0)
+    limit_up = result.get("limit_up", "无") != "无"
+
+    # 基本面评级
+    fund_rating = ""
+    if fund:
+        roe_str = fund.get("roe", "")
+        profit_growth = fund.get("profit_growth", "")
+        debt_str = fund.get("debt_ratio", "")
+        try:
+            roe = safe_float(roe_str.replace("%", ""))
+            debt = safe_float(debt_str.replace("%", ""))
+            profit_g = safe_float(profit_growth.replace("%", ""))
+            if roe > 15 and debt < 50 and profit_g > 0:
+                fund_rating = "优秀"
+            elif roe > 10 and debt < 70:
+                fund_rating = "良好"
+            elif roe > 5:
+                fund_rating = "一般"
+            else:
+                fund_rating = "偏弱"
+        except Exception:
+            fund_rating = "数据不足"
+
+    # 综合评分
+    score = 0
+    reasons = []
+
+    # 四维评分贡献
+    if total >= 28:
+        score += 40
+    elif total >= 24:
+        score += 30
+    elif total >= 18:
+        score += 20
+    elif total >= 12:
+        score += 10
+    else:
+        score += 5
+
+    # 均线多头排列
+    if scores["ma"] >= 6:
+        score += 15
+        reasons.append("均线多头排列")
+    elif scores["ma"] >= 4:
+        score += 8
+
+    # 量价配合
+    if scores["volume"] >= 6:
+        score += 10
+        reasons.append("量价配合良好")
+
+    # K线形态
+    if scores["kline"] >= 6:
+        score += 10
+        reasons.append("K线形态强势")
+
+    # 资金活跃
+    if scores["fund"] >= 6:
+        score += 10
+        reasons.append("资金活跃")
+
+    # 基本面
+    if fund_rating == "优秀":
+        score += 15
+        reasons.append("基本面优秀")
+    elif fund_rating == "良好":
+        score += 10
+        reasons.append("基本面良好")
+    elif fund_rating == "偏弱":
+        score -= 5
+
+    # 风险收益比
+    if risk_reward > 2:
+        score += 10
+        reasons.append("收益风险比高")
+    elif risk_reward > 1:
+        score += 5
+    elif risk_reward < 0.5:
+        score -= 5
+
+    # 追高风险（涨停后可能高位）
+    if limit_up and pct_chg > 5:
+        score -= 10
+        reasons.append("短期涨幅过大需谨慎")
+
+    # 估值
+    if 0 < pe < 20:
+        score += 5
+    elif pe > 100:
+        score -= 5
+
+    if score >= 75:
+        return "强烈买入", reasons
+    elif score >= 55:
+        return "建议买入", reasons
+    elif score >= 35:
+        return "观望", reasons
+    elif score >= 20:
+        return "谨慎", reasons
+    else:
+        return "不建议", reasons
+
+
+# ============================================================
 # 过滤层
 # ============================================================
 def apply_filter(item: Dict) -> bool:
@@ -350,6 +549,11 @@ def generate_html(results: List[Dict], output_path: str):
     rows_html = ""
     for i, r in enumerate(results, 1):
         dims = r["scores"]
+        buy = r.get("buy_signal", "—")
+        buy_class = {
+            "强烈买入": "buy-strong", "建议买入": "buy-recommend",
+            "观望": "buy-watch", "谨慎": "buy-caution", "不建议": "buy-avoid"
+        }.get(buy, "")
         rows_html += f"""
         <tr>
             <td>{i}</td>
@@ -360,10 +564,19 @@ def generate_html(results: List[Dict], output_path: str):
             <td>{dims['volume']}</td>
             <td>{dims['kline']}</td>
             <td>{dims['fund']}</td>
+            <td class="{buy_class}">{buy}</td>
             <td>{r['pct_chg']}</td>
             <td>{r['amount']}</td>
             <td>{r['turnover']}</td>
             <td>{r['mktcap']}</td>
+            <td>{r.get('pe','—')}</td>
+            <td>{r.get('pb','—')}</td>
+            <td>{r.get('roe','—')}</td>
+            <td>{r.get('eps','—')}</td>
+            <td>{r.get('industry','—')}</td>
+            <td>{r.get('support','—')}</td>
+            <td>{r.get('resistance','—')}</td>
+            <td>{r.get('risk_reward','—')}</td>
             <td>{r['limit_up']}</td>
         </tr>"""
 
@@ -388,6 +601,11 @@ def generate_html(results: List[Dict], output_path: str):
     td {{ padding: 10px; font-size: 13px; text-align: center; border-bottom: 1px solid #eee; }}
     tr:hover {{ background: #f0f4ff; }}
     .score-total {{ font-weight: 700; font-size: 16px; color: #e74c3c; }}
+    .buy-strong {{ background: #d4edda; color: #155724; font-weight: 700; padding: 2px 8px; border-radius: 4px; }}
+    .buy-recommend {{ background: #e8f5e9; color: #2e7d32; font-weight: 600; padding: 2px 8px; border-radius: 4px; }}
+    .buy-watch {{ background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 4px; }}
+    .buy-caution {{ background: #ffeeba; color: #d39e00; padding: 2px 8px; border-radius: 4px; }}
+    .buy-avoid {{ background: #f8d7da; color: #721c24; padding: 2px 8px; border-radius: 4px; }}
     .footer {{ text-align: center; padding: 30px; color: #999; font-size: 12px; }}
     .risk-warning {{ background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; color: #856404; font-size: 13px; line-height: 1.8; }}
 </style>
@@ -412,7 +630,10 @@ def generate_html(results: List[Dict], output_path: str):
             <tr>
                 <th>排名</th><th>名称</th><th>代码</th><th>总分</th>
                 <th>均线</th><th>量价</th><th>K线</th><th>资金</th>
-                <th>涨跌幅</th><th>成交额</th><th>换手率</th><th>市值</th><th>近10日涨停</th>
+                <th>买入建议</th>
+                <th>涨跌幅</th><th>成交额</th><th>换手率</th><th>市值</th>
+                <th>PE</th><th>PB</th><th>ROE</th><th>EPS</th><th>行业</th>
+                <th>支撑位</th><th>压力位</th><th>收益风险比</th><th>近10日涨停</th>
             </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -437,18 +658,29 @@ def print_console(results: List[Dict]):
     print("=" * 72)
     for i, r in enumerate(results, 1):
         dims = r["scores"]
-        print(f"\n  {i:>2}. {r['name']}({r['code']})  总分:{r['total']:>2}  "
-              f"均线:{dims['ma']} 量价:{dims['volume']} K线:{dims['kline']} 资金:{dims['fund']}")
-        print(f"      涨幅:{r['pct_chg']}%  成交额:{r['amount']}  换手率:{r['turnover']}  市值:{r['mktcap']}")
-        if r["limit_up"] and r["limit_up"] != "无":
-            print(f"      近10日涨停: {r['limit_up']}")
+        buy = r.get("buy_signal", "—")
+        buy_icon = {"强烈买入": "[强烈买入]", "建议买入": "[建议买入]", "观望": "[观望]", "谨慎": "[谨慎]", "不建议": "[不建议]"}.get(buy, "")
+
+        print(f"\n  {'─' * 68}")
+        print(f"  {i:>2}. {r['name']}({r['code']})  {buy_icon}")
+        print(f"  {'─' * 68}")
+        print(f"      四维评分  总分:{r['total']:>2}  均线:{dims['ma']}  量价:{dims['volume']}  K线:{dims['kline']}  资金:{dims['fund']}")
+        print(f"      行情数据  涨幅:{r['pct_chg']}%  成交额:{r['amount']}  换手率:{r['turnover']}  市值:{r['mktcap']}")
+        print(f"      基本面    行业:{r.get('industry','—')}  PE:{r.get('pe','—')}  PB:{r.get('pb','—')}  ROE:{r.get('roe','—')}  EPS:{r.get('eps','—')}")
+        print(f"      财务健康  净利润增长:{r.get('profit_growth','—')}  资产负债率:{r.get('debt_ratio','—')}")
+        print(f"      技术位    支撑位:{r.get('support','—')}  压力位:{r.get('resistance','—')}  收益风险比:{r.get('risk_reward','—')}")
+        if r.get("limit_up") and r["limit_up"] != "无":
+            print(f"      涨停记录  近10日涨停: {r['limit_up']}")
+        reasons = r.get("buy_reasons", [])
+        if reasons:
+            print(f"      买入理由  {', '.join(reasons)}")
 
 
 # ============================================================
 # 主流程
 # ============================================================
 def process_stock(stock: Dict, args) -> Optional[Dict]:
-    """处理单只股票：获取K线、评分。"""
+    """处理单只股票：获取K线、评分、基本面、支撑压力位、买入建议。"""
     code = stock["code"]
     name = stock["name"]
 
@@ -472,21 +704,46 @@ def process_stock(stock: Dict, args) -> Optional[Dict]:
     amount = stock.get("amount", 0)
     mktcap = stock.get("mktcap", 0)
     turnover = stock.get("turnover", 0)
+    pe = stock.get("pe", 0)
+    pb = stock.get("pb", 0)
     limit_up_str = "无"
     if ma_data and ma_data.get("limit_up_date"):
         limit_up_str = str(ma_data["limit_up_date"])
 
-    return {
+    result = {
         "code": code,
         "name": name,
         "total": total_score,
         "scores": {"ma": s1, "volume": s2, "kline": s3, "fund": s4},
         "pct_chg": f"{stock['pct_chg']:+.2f}",
-        "amount": fmt_amount(amount),  # amount单位：元
+        "amount": fmt_amount(amount),
         "turnover": f"{turnover:.2f}%",
         "mktcap": fmt_amount(mktcap * 10000),
         "limit_up": limit_up_str,
+        "pe": f"{pe:.2f}",
+        "pb": f"{pb:.2f}",
     }
+
+    # 计算支撑位/压力位
+    sr = calc_support_resistance(ma_data)
+    result["support"] = "/".join(sr["supports"]) if sr["supports"] else "—"
+    result["resistance"] = "/".join(sr["resistances"]) if sr["resistances"] else "—"
+    result["risk_reward"] = f"{sr['risk_reward']:.1f}"
+
+    # 获取基本面
+    fund = fetch_fundamentals(code)
+    result["industry"] = fund.get("industry", "—")
+    result["roe"] = fund.get("roe", "—")
+    result["eps"] = fund.get("eps", "—")
+    result["profit_growth"] = fund.get("profit_growth", "—")
+    result["debt_ratio"] = fund.get("debt_ratio", "—")
+
+    # 买入建议
+    buy_label, buy_reasons = evaluate_buy(result, stock, sr, fund)
+    result["buy_signal"] = buy_label
+    result["buy_reasons"] = buy_reasons
+
+    return result
 
 
 def main():
