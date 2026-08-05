@@ -841,7 +841,31 @@ def main():
         "--workers", type=int, default=MAX_WORKERS,
         help=f"并发线程数（默认: {MAX_WORKERS}）"
     )
+    parser.add_argument(
+        "--cache-all", action="store_true",
+        help="批量下载所有股票K线数据到本地缓存后退出"
+    )
+    parser.add_argument(
+        "--cache-force", action="store_true",
+        help="强制刷新K线缓存"
+    )
+    parser.add_argument(
+        "--cache-stats", action="store_true",
+        help="仅显示缓存统计信息"
+    )
     args = parser.parse_args()
+
+    # 处理缓存相关命令
+    if args.cache_stats:
+        from kline_cache import get_cache_stats
+        stats = get_cache_stats()
+        print(f"K线缓存统计: {stats['total']} 只股票, {stats['size_mb']} MB, 今日新鲜: {stats['fresh']}")
+        return
+
+    if args.cache_all:
+        from kline_cache import ensure_cache
+        ensure_cache(force=args.cache_force, workers=args.workers)
+        return
 
     # 确定过滤模式
     if args.no_filter:
