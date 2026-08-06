@@ -59,19 +59,46 @@ def get_cache_path(code: str) -> str:
     return os.path.join(CACHE_DIR, f"{code}.json")
 
 
+# 收盘时间（15:00），之后的数据视为当天完整数据
+MARKET_CLOSE_HOUR = 15
+MARKET_CLOSE_MINUTE = 0
+
+
+def market_is_closed() -> bool:
+    """判断当前是否已收盘（A股15:00收盘）。"""
+    now = datetime.now()
+    return now.hour > MARKET_CLOSE_HOUR or (
+        now.hour == MARKET_CLOSE_HOUR and now.minute >= MARKET_CLOSE_MINUTE
+    )
+
+
+def is_trading_day() -> bool:
+    """简单判断今天是否为交易日（周一到周五，非粗略判断）。"""
+    return datetime.now().weekday() < 5
+
+
 def is_cache_fresh(code: str) -> bool:
     """
-    判断缓存是否新鲜（同一交易日的数据）。
-    如果缓存文件不存在或不是今天更新的，返回False。
+    判断缓存是否新鲜。
+    规则：
+      - 缓存文件不存在 → 不新鲜
+      - 缓存是今天创建的，且当前已收盘（15:00后） → 新鲜
+      - 缓存是今天创建的，但当前在盘中（15:00前） → 不新鲜（数据可能不完整）
+      - 缓存不是今天创建的 → 不新鲜
     """
     path = get_cache_path(code)
     if not os.path.exists(path):
         return False
-    # 检查文件修改日期是否在今天
+
     mtime = os.path.getmtime(path)
     file_date = datetime.fromtimestamp(mtime).strftime("%Y%m%d")
     today = datetime.now().strftime("%Y%m%d")
-    return file_date == today
+
+    if file_date != today:
+        return False
+
+    # 同一天：必须收盘后缓存才算新鲜，否则数据不完整
+    return market_is_closed()
 
 
 def fetch_kline_from_api(code: str) -> Optional[List[Dict]]:
@@ -217,25 +244,36 @@ def download_all_klines(codes: List[str], workers: int = DOWNLOAD_WORKERS) -> Di
 def get_cache_stats() -> Dict[str, Any]:
     """获取缓存统计信息。"""
     if not os.path.exists(CACHE_DIR):
-        return {"total": 0, "size_mb": 0, "fresh": 0}
+        return {"total": 0, "size_mb": 0, "fresh": 0, "stale": 0, "old": 0}
 
     files = [f for f in os.listdir(CACHE_DIR) if f.endswith(".json")]
     total_size = sum(
         os.path.getsize(os.path.join(CACHE_DIR, f)) for f in files
     )
     fresh = 0
+    stale = 0  # 今天盘中缓存（数据不完整）
+    old = 0
     today = datetime.now().strftime("%Y%m%d")
+    closed = market_is_closed()
+
     for f in files:
         path = os.path.join(CACHE_DIR, f)
         mtime = os.path.getmtime(path)
         file_date = datetime.fromtimestamp(mtime).strftime("%Y%m%d")
         if file_date == today:
-            fresh += 1
+            if closed:
+                fresh += 1
+            else:
+                stale += 1
+        else:
+            old += 1
 
     return {
         "total": len(files),
         "size_mb": round(total_size / 1024 / 1024, 2),
         "fresh": fresh,
+        "stale": stale,
+        "old": old,
     }
 
 
@@ -315,15 +353,50 @@ if __name__ == "__main__":
     parser.add_argument("--force", action="store_true", help="强制刷新所有缓存")
     parser.add_argument("--workers", type=int, default=DOWNLOAD_WORKERS, help="并发线程数")
     parser.add_argument("--stats", action="store_true", help="仅显示缓存统计")
+    parser.add_argument(
+        "--daemon", action="store_true",
+        help="守护模式：每天17:00自动刷新全部缓存"
+    )
     args = parser.parse_args()
 
     if args.stats:
         stats = get_cache_stats()
-        print(f"缓存统计: {stats['total']} 只股票, {stats['size_mb']} MB, 今日新鲜: {stats['fresh']}")
+        print(f"缓存统计: {stats['total']} 只, {stats['size_mb']} MB")
+        print(f"  今日新鲜(收盘后): {stats['fresh']}  今日盘中(待刷新): {stats['stale']}  过期: {stats['old']}")
+    elif args.daemon:
+        print("=" * 60)
+        print("  K线缓存守护进程")
+        print(f"  每天 17:00 自动刷新缓存")
+        print(f"  当前时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("=" * 60)
+
+        while True:
+            now = datetime.now()
+            # 计算距离今天17:00的秒数
+            target = now.replace(hour=17, minute=0, second=0, microsecond=0)
+            if now >= target:
+                # 已过17:00，等明天
+                target += timedelta(days=1)
+
+            wait_seconds = (target - now).total_seconds()
+            print(f"\n  下次刷新: {target.strftime('%Y-%m-%d %H:%M:%S')}  (等待 {wait_seconds/3600:.1f} 小时)")
+
+            # 等待到目标时间
+            time.sleep(wait_seconds)
+
+            # 执行刷新
+            print(f"\n{'='*60}")
+            print(f"  [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 开始定时刷新...")
+            print(f"{'='*60}")
+            ensure_cache(force=False, workers=args.workers)
+            stats = get_cache_stats()
+            print(f"  刷新完成: {stats['total']} 只, {stats['size_mb']} MB, 新鲜: {stats['fresh']}")
     else:
         print("=" * 60)
         print("  K线数据缓存工具")
         print("=" * 60)
+        stats_before = get_cache_stats()
+        print(f"  缓存前: {stats_before['total']} 只, 新鲜: {stats_before['fresh']}, 盘中: {stats_before['stale']}, 过期: {stats_before['old']}")
         ensure_cache(force=args.force, workers=args.workers)
         stats = get_cache_stats()
-        print(f"\n  最终缓存: {stats['total']} 只, {stats['size_mb']} MB")
+        print(f"\n  最终缓存: {stats['total']} 只, {stats['size_mb']} MB, 新鲜: {stats['fresh']}")

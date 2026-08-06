@@ -859,7 +859,8 @@ def main():
     if args.cache_stats:
         from kline_cache import get_cache_stats
         stats = get_cache_stats()
-        print(f"K线缓存统计: {stats['total']} 只股票, {stats['size_mb']} MB, 今日新鲜: {stats['fresh']}")
+        print(f"K线缓存统计: {stats['total']} 只, {stats['size_mb']} MB")
+        print(f"  今日新鲜(收盘后): {stats['fresh']}  今日盘中(待刷新): {stats['stale']}  过期: {stats['old']}")
         return
 
     if args.cache_all:
@@ -884,7 +885,8 @@ def main():
     # 显示缓存统计
     from kline_cache import get_cache_stats
     cache_stats = get_cache_stats()
-    print(f"  K线缓存: {cache_stats['total']} 只股票, {cache_stats.get('size_mb', 0)} MB")
+    print(f"  K线缓存: {cache_stats['total']} 只, {cache_stats.get('size_mb', 0)} MB  "
+          f"新鲜:{cache_stats.get('fresh', 0)} 盘中:{cache_stats.get('stale', 0)} 过期:{cache_stats.get('old', 0)}")
     print("=" * 72)
 
     # Step 1: 获取全A股实时行情（含预筛选）
