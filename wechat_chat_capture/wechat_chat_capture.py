@@ -450,18 +450,19 @@ class AutoScrollCaptureApp:
 
     def _scroll(self, mode):
         x1, y1, x2, y2 = self.capture_area
-        cx = (x1 + x2) // 2
+        margin = 8
+        rx = x2 - margin
         cy = (y1 + y2) // 2
 
         if mode == "pagedown":
-            pyautogui.click(cx, cy)
+            pyautogui.click(rx, cy)
             time.sleep(0.08)
             pyautogui.press("pagedown")
         elif mode == "wheel_down":
-            pyautogui.moveTo(cx, cy)
+            pyautogui.moveTo(rx, cy)
             pyautogui.scroll(-3)
         elif mode == "wheel_up":
-            pyautogui.moveTo(cx, cy)
+            pyautogui.moveTo(rx, cy)
             pyautogui.scroll(3)
 
     @staticmethod
