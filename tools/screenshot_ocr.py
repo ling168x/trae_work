@@ -7,6 +7,15 @@
 
 import os
 import sys
+
+# PaddlePaddle 3.x 在 Windows + OneDNN 下存在 PIR 执行器 bug：
+#   NotImplementedError: ConvertPirAttribute2RuntimeAttribute not support
+#   [pir::ArrayAttribute<pir::DoubleAttribute>]
+# 必须在 import paddle / paddleocr 之前关闭 PIR API 与 mkldnn。
+os.environ.setdefault("FLAGS_enable_pir_api", "0")
+os.environ.setdefault("FLAGS_enable_pir_in_executor", "0")
+os.environ.setdefault("FLAGS_use_mkldnn", "0")
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import threading
@@ -32,7 +41,7 @@ def get_ocr():
                 from paddleocr import PaddleOCR
                 _ocr = PaddleOCR(
                     use_angle_cls=True, lang="ch",
-                    use_gpu=False, show_log=False,
+                    enable_mkldnn=False,
                 )
     return _ocr
 
@@ -330,13 +339,30 @@ class ScreenshotOCRApp:
             import numpy as np
             img_np = np.array(img)
 
-            results = ocr.ocr(img_np, cls=True)
-
-            if results and results[0]:
-                lines = [item[1][0] for item in results[0]]
+            # 兼容 PaddleOCR 2.x / 3.x：
+            # 3.x 用 predict()，返回 list[dict]，含 rec_texts 字段；
+            # 2.x 用 ocr(img, cls=True)，返回嵌套 list。
+            if hasattr(ocr, "predict"):
+                results = ocr.predict(img_np)
+                lines = []
+                for r in results or []:
+                    texts = (
+                        r.get("rec_texts", [])
+                        if isinstance(r, dict)
+                        else getattr(r, "rec_texts", [])
+                    )
+                    if texts:
+                        lines.extend(texts)
+                    elif isinstance(r, dict) and r.get("rec_text"):
+                        lines.append(r["rec_text"])
                 text = "\n".join(lines).strip()
             else:
-                text = ""
+                results = ocr.ocr(img_np, cls=True)
+                if results and results[0]:
+                    lines = [item[1][0] for item in results[0]]
+                    text = "\n".join(lines).strip()
+                else:
+                    text = ""
 
             if text:
                 self._save_to_excel(text)
