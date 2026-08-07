@@ -2294,8 +2294,9 @@ function initStdPopTab() {
   if (cached) {
     try {
       stdPopData = JSON.parse(cached);
-      document.getElementById('stdpopNameFilter').style.display = 'none';
-      document.getElementById('stdpopLvlFilter').style.display = 'none';
+      document.getElementById('stdpopNameFilter').style.display = '';
+      document.getElementById('stdpopLvlFilter').style.display = '';
+      document.getElementById('stdpopSearch').style.display = '';
     } catch(e) { stdPopData = STDPOP_DEFAULT; }
   } else if (stdPopData.length === 0) {
     stdPopData = STDPOP_DEFAULT;
@@ -2382,8 +2383,9 @@ function parseStdPopXlsx(file) {
       renderStdPopTable();
       // Save to localStorage for persistence
       localStorage.setItem('stdpop_data', JSON.stringify(stdPopData));
-      document.getElementById('stdpopNameFilter').style.display = 'none';
-      document.getElementById('stdpopLvlFilter').style.display = 'none';
+      document.getElementById('stdpopNameFilter').style.display = '';
+      document.getElementById('stdpopLvlFilter').style.display = '';
+      document.getElementById('stdpopSearch').style.display = '';
       showToast('已导入 BuildingConfig.xlsx: ' + stdPopData.length + ' 条记录');
     } catch(err) {
       showToast('解析失败: ' + err.message);
@@ -2449,6 +2451,7 @@ function resetStdPop() {
   stdPopData = STDPOP_DEFAULT;
   document.getElementById('stdpopNameFilter').style.display = '';
   document.getElementById('stdpopLvlFilter').style.display = '';
+  document.getElementById('stdpopSearch').style.display = '';
   updateStdPopNameFilter();
   renderStdPopTable();
   showToast('已恢复默认数据');
