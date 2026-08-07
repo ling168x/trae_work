@@ -1,0 +1,2464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工具箱</title>
+<style>
+:root {
+  --primary: #4a90d9;
+  --primary-hover: #357abd;
+  --primary-light: #e3f2fd;
+  --bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --border: #e1e5eb;
+  --text: #333333;
+  --text-light: #666666;
+  --success: #52c41a;
+  --error: #ff4d4f;
+  --warning: #faad14;
+  --purple: #9c27b0;
+  --blue: #1565c0;
+  --green: #2e7d32;
+  --orange: #e65100;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --radius: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.header p {
+  color: var(--text-light);
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.tabs_1 {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 24px;
+  /* overflow-x: auto; */
+}
+
+.tab {
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-light);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tab:hover { color: var(--primary); }
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Card */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+/* Forms */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.form-label {
+  font-size: 14px;
+  color: var(--text-light);
+  min-width: 80px;
+}
+
+input[type="text"], input[type="number"], textarea {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.1);
+}
+
+select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #45b015; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-warning:hover { background: #d99b12; }
+.btn-danger { background: var(--error); color: white; }
+.btn-danger:hover { background: #e63e40; }
+.btn-outline { background: white; color: var(--primary); border: 1px solid var(--primary); }
+.btn-outline:hover { background: rgba(74, 144, 217, 0.05); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Timestamp Tool */
+.timestamp-input { flex: 1; min-width: 200px; }
+
+.result-box {
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.result-value {
+  font-family: 'Consolas', monospace;
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.current-time {
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: #f8fafb;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.current-time span {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.datetime-inputs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.datetime-inputs input { width: 70px; text-align: center; }
+.datetime-inputs .date-input { width: 100px; }
+.datetime-sep { color: var(--text-light); font-size: 14px; }
+
+/* JSON Tool */
+.json-container {
+  display: flex;
+  gap: 16px;
+  min-height: 500px;
+}
+
+.json-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.json-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.json-panel-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.json-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 450px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.6;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.json-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.1);
+}
+
+/* JSON Tree View */
+.json-tree-container {
+  flex: 1;
+  width: 100%;
+  min-height: 450px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.8;
+  overflow: auto;
+  background: #fff;
+}
+
+.json-tree-container .json-key { color: #9c27b0; font-weight: 500; }
+.json-tree-container .json-string { color: #2e7d32; }
+.json-tree-container .json-number { color: #1565c0; }
+.json-tree-container .json-boolean { color: #e65100; font-weight: 500; }
+.json-tree-container .json-null { color: #999; font-style: italic; }
+.json-tree-container .json-bracket { color: #333; }
+
+.json-tree-container .json-toggle {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+  cursor: pointer;
+  color: #e91e63;
+  font-weight: bold;
+  user-select: none;
+  margin-right: 2px;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.json-tree-container .json-toggle:hover {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.json-tree-container .json-collapsible { display: inline; }
+.json-tree-container .json-collapsed > .json-collapsible { display: none; }
+.json-tree-container .json-collapsed > .json-ellipsis { display: inline; }
+.json-tree-container .json-ellipsis { display: none; color: #999; cursor: pointer; font-style: italic; }
+.json-tree-container .json-line { padding-left: 0; }
+.json-tree-container .json-placeholder { color: #aaa; font-style: italic; }
+
+.json-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.status-bar {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  display: none;
+}
+
+.status-bar.success { display: block; background: #f0fff0; border: 1px solid #b7eb8f; color: #389e0d; }
+.status-bar.error { display: block; background: #fff2f0; border: 1px solid #ffccc7; color: #cf1322; }
+
+/* Tab 3: Attribute Import */
+.attr-section {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.attr-section > div { flex: 1; min-width: 300px; }
+
+.attr-textarea {
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 13px;
+  font-family: 'Consolas', monospace;
+  line-height: 1.6;
+  outline: none;
+}
+
+.attr-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.1);
+}
+
+.attr-ref-table {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th, .data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.data-table th {
+  background: #f8fafb;
+  font-weight: 600;
+  color: var(--text-light);
+  position: sticky;
+  top: 0;
+}
+
+.data-table tr:hover { background: #f8fafb; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.badge-percent { background: #fff3e0; color: #e65100; }
+.badge-raw { background: #e8f5e9; color: #2e7d32; }
+
+/* Tab 3: Work Calculator */
+.work-main {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.work-main > .work-left {
+  flex: 3;
+  min-width: 0;
+}
+
+.work-main > .work-right {
+  flex: 2;
+  min-width: 320px;
+}
+
+@media (max-width: 900px) {
+  .work-main {
+    flex-direction: column;
+  }
+  .work-main > .work-right {
+    min-width: 0;
+  }
+}
+
+.attr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.attr-grid .input-group { margin-bottom: 0; }
+
+.attr-grid .input-group input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: right;
+  outline: none;
+  font-family: 'Consolas', monospace;
+}
+
+.attr-grid .input-group input:focus {
+  border-color: var(--primary);
+}
+
+.input-group {
+  margin-bottom: 12px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 3px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: var(--primary);
+}
+
+.calc-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.calc-card {
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+
+.calc-card .card-label {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.calc-card .card-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Consolas', monospace;
+}
+
+.calc-card .card-value.time-val { color: var(--orange); }
+.calc-card .card-value.res-val { color: var(--green); }
+
+.pop-info {
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Tab 5: Damage Calculator */
+.dmg-main {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.dmg-main > .dmg-left {
+  flex: 3;
+  min-width: 0;
+}
+
+.dmg-main > .dmg-right {
+  flex: 2;
+  min-width: 320px;
+}
+
+.dmg-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.dmg-col h4 {
+  font-size: 14px;
+  color: var(--primary);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.dmg-input-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.dmg-input-item label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.dmg-input-item input[type="text"] {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  font-family: 'Consolas', monospace;
+}
+
+.dmg-input-item input[type="text"]:focus {
+  border-color: var(--primary);
+}
+
+.dmg-input-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.dmg-pct-hint {
+  display: inline-block;
+  font-size: 11px;
+  color: #e65100;
+  min-width: 52px;
+  text-align: left;
+  font-family: 'Consolas', monospace;
+  background: #fff3e0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* Damage scenario tabs */
+.dmg-scenario-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  overflow-x: auto;
+}
+
+.dmg-scenario-tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: #f8fafb;
+  transition: all 0.2s;
+  user-select: none;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dmg-scenario-tab:hover { color: var(--primary); background: #e3f2fd; }
+
+.dmg-scenario-tab.active {
+  color: var(--primary);
+  background: white;
+  border-color: var(--primary);
+  border-bottom: 2px solid white;
+  margin-bottom: -1px;
+}
+
+.dmg-scenario-tab .scenario-close {
+  font-size: 14px;
+  color: #999;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dmg-scenario-tab .scenario-close:hover { color: #ff4d4f; background: #fff2f0; }
+
+.dmg-scenario-btn {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  transition: all 0.2s;
+  user-select: none;
+  white-space: nowrap;
+  margin-left: 4px;
+}
+
+.dmg-scenario-btn:hover { background: #e3f2fd; border-color: var(--primary); }
+
+/* Damage comparison table */
+.dmg-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.dmg-compare-table th, .dmg-compare-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.dmg-compare-table th {
+  background: #f8fafb;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.dmg-compare-table .compare-normal { color: #2e7d32; font-weight: 600; }
+.dmg-compare-table .compare-skill { color: #1565c0; font-weight: 600; }
+.dmg-compare-table .compare-crit { color: #e65100; font-weight: 600; }
+
+.dmg-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.dmg-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.dmg-result-card {
+  text-align: center;
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+}
+
+.dmg-result-card.normal { border-color: #4caf50; background: #f1f8e9; }
+.dmg-result-card.skill { border-color: #2196f3; background: #e3f2fd; }
+.dmg-result-card.crit { border-color: #ff9800; background: #fff8e1; }
+
+.dmg-result-card .dmg-label {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.dmg-result-card .dmg-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Consolas', monospace;
+}
+
+.dmg-result-card.normal .dmg-value { color: #2e7d32; }
+.dmg-result-card.skill .dmg-value { color: #1565c0; }
+.dmg-result-card.crit .dmg-value { color: #e65100; }
+
+.step-detail {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-light);
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: 'Consolas', monospace;
+  line-height: 1.8;
+}
+
+.step-detail .step-line {
+  padding: 2px 0;
+  border-bottom: 1px solid #eee;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  background: #333;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container { padding: 12px; }
+  .json-container { flex-direction: column; }
+  .form-row { flex-direction: column; align-items: flex-start; }
+  .timestamp-input { width: 100%; }
+  .attr-section { flex-direction: column; }
+  .work-section { flex-direction: column; }
+  .work-section > .work-left { flex: none; width: 100%; }
+  .dmg-inputs { grid-template-columns: 1fr; }
+  .dmg-main { flex-direction: column; }
+  .dmg-main > .dmg-right { min-width: 0; }
+  .attr-grid { grid-template-columns: 1fr; }
+  .dmg-scenario-tabs { flex-wrap: wrap; }
+  .dmg-actions { flex-direction: column; }
+}
+
+/* Tab 6: Standard Population */
+.stdpop-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+  margin-bottom: 16px;
+}
+.stdpop-dropzone:hover, .stdpop-dropzone.drag-over {
+  border-color: var(--primary);
+  background: #e8f0fe;
+}
+.stdpop-dropzone .drop-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+.stdpop-dropzone .drop-text {
+  font-size: 14px;
+  color: var(--text-light);
+}
+.stdpop-dropzone .drop-hint {
+  font-size: 12px;
+  color: var(--text-lighter);
+  margin-top: 6px;
+}
+.stdpop-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.stdpop-toolbar input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+.stdpop-toolbar select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  background: #fff;
+}
+.stdpop-stats {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
+.stdpop-table-wrap {
+  max-height: 550px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.stdpop-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.stdpop-table-wrap th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+  z-index: 1;
+}
+.stdpop-table-wrap td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+.stdpop-table-wrap tr:hover td {
+  background: #f5f8ff;
+}
+.stdpop-table-wrap .num {
+  text-align: right;
+  font-family: 'Consolas', monospace;
+}
+.stdpop-table-wrap .col-name {
+  min-width: 100px;
+}
+.stdpop-table-wrap .col-lvl {
+  width: 60px;
+  text-align: center;
+}
+.stdpop-table-wrap .col-wl {
+  min-width: 140px;
+}
+.stdpop-table-wrap .col-sp {
+  min-width: 140px;
+}
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>工具箱</h1>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs_1">
+    <div class="tab active" data-tab="timestamp">时间戳工具</div>
+    <div class="tab" data-tab="json">JSON格式化</div>
+    <div class="tab" data-tab="work">工作计算</div>
+    <div class="tab" data-tab="damage">伤害计算</div>
+    <div class="tab" data-tab="stdpop">标准人口</div>
+  </div>
+
+  <!-- ==================== Tab 1: Timestamp Tool ==================== -->
+  <div class="tab-content active" id="tab-timestamp">
+    <div class="card">
+      <div class="card-title">当前时间</div>
+      <div class="current-time" id="currentTime"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">时间戳 → 时间</div>
+      <div class="form-row">
+        <span class="form-label">时间戳：</span>
+        <input type="text" class="timestamp-input" id="timestampInput" placeholder="请输入时间戳，如 1722945000 或 1722945000000">
+        <select id="timestampUnit">
+          <option value="auto">自动识别</option>
+          <option value="s">秒 (s)</option>
+          <option value="ms">毫秒 (ms)</option>
+        </select>
+        <button class="btn btn-primary" onclick="convertTimestamp()">转换</button>
+        <button class="btn btn-outline" onclick="fillCurrentTimestamp()">当前时间戳</button>
+      </div>
+      <div class="result-box" id="timestampResult" style="display:none;">
+        <span class="result-value" id="timestampResultValue"></span>
+        <button class="btn btn-success btn-sm" onclick="copyText('timestampResultValue')">复制</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">时间 → 时间戳</div>
+      <div class="form-row">
+        <span class="form-label">日期时间：</span>
+        <div class="datetime-inputs">
+          <input type="text" class="date-input" id="dtYear" placeholder="年">
+          <span class="datetime-sep">-</span>
+          <input type="text" id="dtMonth" placeholder="月">
+          <span class="datetime-sep">-</span>
+          <input type="text" id="dtDay" placeholder="日">
+          <span class="datetime-sep">&nbsp;</span>
+          <input type="text" id="dtHour" placeholder="时">
+          <span class="datetime-sep">:</span>
+          <input type="text" id="dtMinute" placeholder="分">
+          <span class="datetime-sep">:</span>
+          <input type="text" id="dtSecond" placeholder="秒">
+        </div>
+      </div>
+      <div class="form-row">
+        <span class="form-label"></span>
+        <button class="btn btn-primary" onclick="convertToTimestamp()">转换</button>
+        <button class="btn btn-outline" onclick="fillCurrentDatetime()">填入当前时间</button>
+      </div>
+      <div class="result-box" id="toTimestampResult" style="display:none;">
+        <div>
+          <div style="margin-bottom: 8px;">
+            <span style="color: var(--text-light); font-size: 13px;">秒(s)：</span>
+            <span class="result-value" id="resultSeconds"></span>
+            <button class="btn btn-success btn-sm" onclick="copyText('resultSeconds')" style="margin-left: 8px;">复制</button>
+          </div>
+          <div>
+            <span style="color: var(--text-light); font-size: 13px;">毫秒(ms)：</span>
+            <span class="result-value" id="resultMillis"></span>
+            <button class="btn btn-success btn-sm" onclick="copyText('resultMillis')" style="margin-left: 8px;">复制</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 2: JSON Tool ==================== -->
+  <div class="tab-content" id="tab-json">
+    <div class="card">
+      <div class="json-toolbar">
+        <button class="btn btn-primary" onclick="formatJson()">格式化</button>
+        <button class="btn btn-warning" onclick="compressJson()">压缩</button>
+        <button class="btn btn-success" onclick="copyJson()">复制结果</button>
+        <button class="btn btn-danger" onclick="clearJson()">清空</button>
+        <button class="btn btn-outline" onclick="loadSample()">示例</button>
+      </div>
+      <div class="json-container">
+        <div class="json-panel">
+          <div class="json-panel-header">
+            <span class="json-panel-title">输入 JSON</span>
+          </div>
+          <textarea class="json-textarea" id="jsonInput" placeholder="请在此处粘贴 JSON 数据..."></textarea>
+        </div>
+        <div class="json-panel">
+          <div class="json-panel-header">
+            <span class="json-panel-title">输出结果</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-outline btn-sm" onclick="expandAll()">全部展开</button>
+              <button class="btn btn-outline btn-sm" onclick="collapseAll()">全部折叠</button>
+            </div>
+          </div>
+          <div class="json-tree-container" id="jsonOutput"><span class="json-placeholder">格式化结果将显示在这里...</span></div>
+        </div>
+      </div>
+      <div class="status-bar" id="jsonStatus"></div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 3: Work Calculator ==================== -->
+  <div class="tab-content" id="tab-work">
+    <div class="work-main">
+      <!-- LEFT: JSON input + params + attribute grid -->
+      <div class="work-left">
+        <!-- JSON Input with auto-parse -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">属性JSON输入 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 粘贴后自动解析并导入</span></div>
+          <textarea class="attr-textarea" id="wkJsonInput" placeholder='粘贴包含 "attrId" 和 "value" 字段的JSON数据&#10;例如: {"attrId": 3022, "value": "360"}'></textarea>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span id="wkParseStatus" style="font-size:12px;color:var(--text-light);"></span>
+            <button class="btn btn-outline btn-sm" onclick="clearWkJson()">清空JSON</button>
+          </div>
+        </div>
+
+        <!-- Basic params -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title">基础参数</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div class="input-group" style="flex:1;min-width:100px;">
+              <label>工作人口 (pop)</label>
+              <input type="number" id="wkPop" value="100" placeholder="100">
+            </div>
+            <div class="input-group" style="flex:1;min-width:100px;">
+              <label>标准人口 (stdPop)</label>
+              <input type="number" id="wkStdPop" value="50" placeholder="50">
+            </div>
+            <div class="input-group" style="flex:1;min-width:120px;">
+              <label>工作量 (workLoad)</label>
+              <input type="number" id="wkWorkLoad" placeholder="1000">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="calcWork()" style="margin-top:8px;">计算</button>
+        </div>
+
+        <!-- Attribute grid -->
+        <div class="card">
+          <div class="card-title">属性值 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 万分比=需÷10000, 数值=直接使用</span></div>
+          <div class="attr-grid">
+            <div class="input-group"><label>人均工作效率(3022) 数值</label><input type="number" id="wk-3022" step="0.0001" value="0"></div>
+            <div class="input-group"><label>工作速度(3023) 万分比</label><input type="number" id="wk-3023" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均建造效率(3024) 数值</label><input type="number" id="wk-3024" step="0.0001" value="0"></div>
+            <div class="input-group"><label>建造速度(3001) 万分比</label><input type="number" id="wk-3001" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均科研效率(3025) 数值</label><input type="number" id="wk-3025" step="0.0001" value="0"></div>
+            <div class="input-group"><label>研究速度(3002) 万分比</label><input type="number" id="wk-3002" step="0.0001" value="0"></div>
+            <div class="input-group"><label>科研队列队伍数(3032) 数值</label><input type="number" id="wk-3032" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均训练效率(3026) 数值</label><input type="number" id="wk-3026" step="0.0001" value="0"></div>
+            <div class="input-group"><label>训练速度(3003) 万分比</label><input type="number" id="wk-3003" step="0.0001" value="0"></div>
+            <div class="input-group"><label>练兵队列队伍数(3033) 数值</label><input type="number" id="wk-3033" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均生产效率(3042) 数值</label><input type="number" id="wk-3042" step="0.0001" value="0"></div>
+            <div class="input-group"><label>采集速度(3004) 万分比</label><input type="number" id="wk-3004" step="0.0001" value="0"></div>
+            <div class="input-group"><label>全资源生产速度(3012) 万分比</label><input type="number" id="wk-3012" step="0.0001" value="0"></div>
+            <div class="input-group"><label>基础木头效率(3038) 数值</label><input type="number" id="wk-3038" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均木头效率(3034) 数值</label><input type="number" id="wk-3034" step="0.0001" value="0"></div>
+            <div class="input-group"><label>木头生产速度(3013) 万分比</label><input type="number" id="wk-3013" step="0.0001" value="0"></div>
+            <div class="input-group"><label>基础石头效率(3039) 数值</label><input type="number" id="wk-3039" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均石头效率(3035) 数值</label><input type="number" id="wk-3035" step="0.0001" value="0"></div>
+            <div class="input-group"><label>石头生产速度(3014) 万分比</label><input type="number" id="wk-3014" step="0.0001" value="0"></div>
+            <div class="input-group"><label>基础食物效率(3040) 数值</label><input type="number" id="wk-3040" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均食物效率(3036) 数值</label><input type="number" id="wk-3036" step="0.0001" value="0"></div>
+            <div class="input-group"><label>食物生产速度(3015) 万分比</label><input type="number" id="wk-3015" step="0.0001" value="0"></div>
+            <div class="input-group"><label>基础铁矿效率(3041) 数值</label><input type="number" id="wk-3041" step="0.0001" value="0"></div>
+            <div class="input-group"><label>人均铁矿效率(3037) 数值</label><input type="number" id="wk-3037" step="0.0001" value="0"></div>
+            <div class="input-group"><label>铁矿生产速度(3016) 万分比</label><input type="number" id="wk-3016" step="0.0001" value="0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="work-right">
+        <div class="card" style="position:sticky;top:16px;">
+          <div class="card-title">计算结果</div>
+          <div class="pop-info" id="popInfo" style="font-size:13px;background:#f8fafb;padding:10px;border-radius:6px;margin-bottom:12px;color:var(--text-light);">点击「计算」查看结果</div>
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">时间计算</h4>
+          <div class="calc-results" id="timeResults">
+            <div style="color:var(--text-light);font-size:13px;padding:8px;">请输入工作量以计算时间</div>
+          </div>
+          <h4 style="font-size:14px;font-weight:600;margin-top:20px;margin-bottom:8px;">资源产出 (每小时)</h4>
+          <div class="calc-results" id="resResults">
+            <div style="color:var(--text-light);font-size:13px;padding:8px;">点击「计算」查看资源产出</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 4: Attribute Reference ==================== -->
+  <div class="tab-content" id="tab-attr">
+    <div class="card">
+      <div class="card-title">属性ID参考表 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 来自Attr.xlsx</span></div>
+      <div class="attr-ref-table" style="max-height:500px;">
+        <table class="data-table" id="attrRefTable">
+          <thead><tr><th>ID</th><th>属性名</th><th>类型</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 5: Damage Calculator ==================== -->
+  <div class="tab-content" id="tab-damage">
+    <div class="dmg-main">
+      <!-- LEFT: inputs -->
+      <div class="dmg-left">
+        <div class="card">
+          <div class="card-title">伤害计算器 (11步伤害管线) <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 百分比值输入小数，如 16.06% = 0.1606</span></div>
+          <!-- Scenario tabs -->
+          <div class="dmg-scenario-tabs" id="dmgScenarioTabs">
+            <div class="dmg-scenario-tab active" data-scenario="0" onclick="switchDmgScenario(0)">
+              <span>场景 1</span><span class="scenario-close" onclick="event.stopPropagation();closeDmgScenario(0)" title="关闭">&times;</span>
+            </div>
+            <button class="dmg-scenario-btn" onclick="addDmgScenario()" title="新增场景">+</button>
+          </div>
+          <div class="dmg-inputs" id="dmgInputs">
+            <div class="dmg-col">
+              <h4>攻击方参数</h4>
+              <div class="dmg-input-item"><label>攻击方英雄总攻击</label><input type="text" inputmode="decimal" class="dmg-val" data-key="atk" placeholder="0"></div>
+              <div class="dmg-input-item"><label>技能伤害系数</label><input type="text" inputmode="decimal" class="dmg-val" data-key="skillCoef" placeholder="0.3333"></div>
+              <div class="dmg-input-item"><label>受击方英雄总防御</label><input type="text" inputmode="decimal" class="dmg-val" data-key="def" placeholder="0"></div>
+              <div class="dmg-input-item"><label>攻方士气</label><input type="text" inputmode="decimal" class="dmg-val" data-key="atkMorale" placeholder="266"></div>
+              <div class="dmg-input-item"><label>守方士气</label><input type="text" inputmode="decimal" class="dmg-val" data-key="defMorale" placeholder="201"></div>
+              <div class="dmg-input-item"><label>攻方普攻伤害增加</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="atkNormalAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方普攻伤害减少</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="defNormalRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方技能伤害增加</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="atkSkillAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方技能伤害减少</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="defSkillRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>触发闪避</label><input type="checkbox" class="dmg-check" data-key="dodge"></div>
+              <div class="dmg-input-item"><label>触发暴击</label><input type="checkbox" class="dmg-check" data-key="triggerCrit"></div>
+              <div class="dmg-input-item"><label>是否PVP</label><input type="checkbox" class="dmg-check" data-key="isPvp"></div>
+            </div>
+            <div class="dmg-col">
+              <h4>加成/减免参数</h4>
+              <div class="dmg-input-item"><label>攻方暴击伤害加成</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="critDmgAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方暴击伤害减免</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="critDmgRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方克制伤害增加</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="restrainAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方克制伤害减少</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="restrainRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方伤害加深</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="dmgDeepen" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方伤害减免</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="dmgRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方易伤伤害加成</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="defVuln" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方累加型伤害增加</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="stackAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方累加型伤害减少</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="stackRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方PVP伤害加成</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="pvpAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方PVP伤害减免</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="pvpRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻方PVE伤害增加</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="pveAdd" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>守方PVE伤害减少</label><input type="text" inputmode="decimal" class="dmg-val dmg-pct-input" data-key="pveRed" placeholder="0"><span class="dmg-pct-hint">0.00%</span></div>
+              <div class="dmg-input-item"><label>攻击方指挥属性</label><input type="text" inputmode="decimal" class="dmg-val" data-key="atkCmd" placeholder="0"></div>
+              <div class="dmg-input-item"><label>被攻击方指挥属性</label><input type="text" inputmode="decimal" class="dmg-val" data-key="defCmd" placeholder="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: results -->
+      <div class="dmg-right">
+        <div class="card" style="position:sticky;top:16px;">
+          <div class="card-title">计算结果</div>
+          <div class="dmg-actions">
+            <button class="btn btn-primary" onclick="calcDamage()" style="padding:12px 36px;font-size:15px;">计算伤害</button>
+            <button class="btn btn-outline" onclick="copyCurrentScenario()">复制当前场景</button>
+            <button class="btn btn-outline" onclick="toggleDmgCompare()">对比所有场景</button>
+          </div>
+          <div class="dmg-results" id="dmgResults">
+            <div class="dmg-result-card normal">
+              <div class="dmg-label">普攻伤害</div>
+              <div class="dmg-value" id="dmgResNormal">--</div>
+            </div>
+            <div class="dmg-result-card skill">
+              <div class="dmg-label">技能伤害</div>
+              <div class="dmg-value" id="dmgResSkill">--</div>
+            </div>
+            <div class="dmg-result-card crit">
+              <div class="dmg-label">暴击伤害</div>
+              <div class="dmg-value" id="dmgResCrit">--</div>
+            </div>
+          </div>
+          <div class="step-detail" id="dmgSteps" style="display:none"></div>
+          <!-- Comparison table -->
+          <div id="dmgComparePanel" style="display:none;margin-top:20px;">
+            <div class="card-title" style="margin-bottom:8px;">场景对比</div>
+            <div style="max-height:400px;overflow-y:auto;overflow-x:auto;">
+              <table class="dmg-compare-table" id="dmgCompareTable">
+                <thead><tr><th>场景</th><th>攻击</th><th>防御</th><th>普攻伤害</th><th>技能伤害</th><th>暴击伤害</th><th>模式</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 6: Standard Population ==================== -->
+  <div class="tab-content" id="tab-stdpop">
+    <div class="card">
+      <div class="card-title">标准人口信息 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 来自公式计算.xlsm / BuildingConfig.xlsx</span></div>
+      <div class="stdpop-dropzone" id="stdpopDropzone">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">拖拽 BuildingConfig.xlsx 到此处更新数据</div>
+        <div class="drop-hint">或点击选择文件 | 读取子表 BuildingLevelConfig</div>
+        <input type="file" id="stdpopFileInput" accept=".xlsx,.xls" style="display:none">
+      </div>
+      <button class="btn btn-outline" id="stdpopResetBtn" style="margin-bottom:12px;font-size:12px;" onclick="resetStdPop()">重置为默认数据</button>
+      <div class="stdpop-toolbar">
+        <input type="text" id="stdpopSearch" placeholder="搜索建筑名称或等级..." oninput="filterStdPop()">
+        <select id="stdpopNameFilter" onchange="filterStdPop()"><option value="">全部建筑</option></select>
+        <select id="stdpopLvlFilter" onchange="filterStdPop()"><option value="">全部等级</option></select>
+        <span class="stdpop-stats" id="stdpopStats"></span>
+      </div>
+      <div class="stdpop-table-wrap">
+        <table id="stdpopTable">
+          <thead>
+            <tr><th class="col-lvl">等级</th><th class="col-name">建筑名称</th><th class="col-wl num">升级工作量(s)</th><th class="col-sp num">标准人口</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Global State ====================
+let currentJsonObj = null;
+
+// Attribute reference table (from Attr.xlsx: displayname=1→数值, displayname=2→万分比)
+const ATTR_MAP = {
+  101: { name: '英雄最大生命', percent: false },
+  102: { name: '英雄最大攻击', percent: false },
+  103: { name: '英雄最大防御', percent: false },
+  1001: { name: '英雄基础生命', percent: false },
+  1002: { name: '英雄基础攻击', percent: false },
+  1003: { name: '英雄基础防御', percent: false },
+  1004: { name: '英雄固定生命', percent: false },
+  1005: { name: '英雄固定攻击', percent: false },
+  1006: { name: '英雄固定防御', percent: false },
+  1007: { name: '带兵量上限', percent: false },
+  1008: { name: '指挥', percent: false },
+  1009: { name: '英雄生命百分比', percent: true },
+  1010: { name: '英雄攻击百分比', percent: true },
+  1011: { name: '英雄防御百分比', percent: true },
+  1012: { name: '部队生命百分比', percent: true },
+  1013: { name: '部队攻击百分比', percent: true },
+  1014: { name: '部队防御百分比', percent: true },
+  1015: { name: '近战英雄生命百分比', percent: true },
+  1016: { name: '近战英雄攻击百分比', percent: true },
+  1017: { name: '近战英雄防御百分比', percent: true },
+  1018: { name: '远程英雄生命百分比', percent: true },
+  1019: { name: '远程英雄攻击百分比', percent: true },
+  1020: { name: '远程英雄防御百分比', percent: true },
+  1021: { name: '突击英雄生命百分比', percent: true },
+  1022: { name: '突击英雄攻击百分比', percent: true },
+  1023: { name: '突击英雄防御百分比', percent: true },
+  1024: { name: '所有英雄生命百分比', percent: true },
+  1025: { name: '所有英雄攻击百分比', percent: true },
+  1026: { name: '所有英雄防御百分比', percent: true },
+  1027: { name: '命中率', percent: true },
+  1028: { name: '闪避率', percent: true },
+  1029: { name: '暴击率', percent: true },
+  1030: { name: '抗暴率', percent: true },
+  1031: { name: '暴击伤害', percent: true },
+  1032: { name: '暴击伤害减免', percent: true },
+  1033: { name: '普攻伤害增加', percent: true },
+  1034: { name: '普攻伤害减少', percent: true },
+  1035: { name: '技能伤害增加', percent: true },
+  1036: { name: '技能伤害减免', percent: true },
+  1037: { name: 'PVP伤害增加', percent: true },
+  1038: { name: 'PVP伤害减免', percent: true },
+  1039: { name: '克制敌方时伤害提升', percent: true },
+  1040: { name: '克制敌方时承受伤害减少', percent: true },
+  1041: { name: '伤害加深', percent: true },
+  1042: { name: '伤害减免', percent: true },
+  1043: { name: '易伤伤害加成', percent: true },
+  1044: { name: '攻击速度', percent: true },
+  1045: { name: '技能冷却速度', percent: true },
+  1046: { name: '近战英雄伤害提升', percent: true },
+  1047: { name: '远程英雄伤害提升', percent: true },
+  1048: { name: '突击英雄伤害提升', percent: true },
+  1049: { name: '所有英雄伤害提升', percent: true },
+  1050: { name: '对近战英雄伤害减少', percent: true },
+  1051: { name: '对远程英雄伤害减少', percent: true },
+  1052: { name: '对突击英雄伤害减少', percent: true },
+  1053: { name: '对前排单位伤害提升', percent: true },
+  1054: { name: '对后排单位伤害提升', percent: true },
+  1055: { name: '对前排单位伤害减免', percent: true },
+  1056: { name: '造成伤害提升', percent: true },
+  1057: { name: '承受伤害减少', percent: true },
+  1058: { name: '对怪物伤害增加', percent: true },
+  1059: { name: '承受怪物伤害减少', percent: true },
+  1060: { name: '对首领造成伤害提升', percent: true },
+  1061: { name: '承受首领伤害减少', percent: true },
+  1062: { name: '战场移动速度', percent: false },
+  1063: { name: '战场移动速度万分比', percent: true },
+  2001: { name: '士兵总生命', percent: false },
+  2002: { name: '士兵总攻击', percent: false },
+  2003: { name: '士兵总防御', percent: false },
+  2004: { name: '士兵基础生命', percent: false },
+  2005: { name: '士兵基础攻击', percent: false },
+  2006: { name: '士兵基础防御', percent: false },
+  2007: { name: '士兵士气', percent: false },
+  2008: { name: '士兵负重', percent: false },
+  2009: { name: '士兵生命百分比', percent: true },
+  2010: { name: '士兵攻击百分比', percent: true },
+  2011: { name: '士兵防御百分比', percent: true },
+  2012: { name: '士兵负重百分比', percent: true },
+  2013: { name: '近战士兵生命', percent: false },
+  2014: { name: '近战士兵攻击', percent: false },
+  2015: { name: '近战士兵防御', percent: false },
+  2016: { name: '近战士兵生命百分比', percent: true },
+  2017: { name: '近战士兵攻击百分比', percent: true },
+  2018: { name: '近战士兵防御百分比', percent: true },
+  2019: { name: '远程士兵生命', percent: false },
+  2020: { name: '远程士兵攻击', percent: false },
+  2021: { name: '远程士兵防御', percent: false },
+  2022: { name: '远程士兵生命百分比', percent: true },
+  2023: { name: '远程士兵攻击百分比', percent: true },
+  2024: { name: '远程士兵防御百分比', percent: true },
+  2025: { name: '突击士兵生命', percent: false },
+  2026: { name: '突击士兵攻击', percent: false },
+  2027: { name: '突击士兵防御', percent: false },
+  2028: { name: '突击士兵生命百分比', percent: true },
+  2029: { name: '突击士兵攻击百分比', percent: true },
+  2030: { name: '突击士兵防御百分比', percent: true },
+  3001: { name: '建造速度', percent: true },
+  3002: { name: '研究速度', percent: true },
+  3003: { name: '训练速度', percent: true },
+  3004: { name: '采集速度', percent: true },
+  3005: { name: '建造消耗资源减少', percent: true },
+  3006: { name: '研究消耗资源减少', percent: true },
+  3007: { name: '训练消耗资源减少', percent: true },
+  3008: { name: '训练容量', percent: false },
+  3009: { name: '训练容量百分比', percent: true },
+  3012: { name: '全资源生产速度', percent: true },
+  3013: { name: '木头资源生产速度', percent: true },
+  3014: { name: '石头资源生产速度', percent: true },
+  3015: { name: '食物资源生产速度', percent: true },
+  3016: { name: '铁矿资源生产速度', percent: true },
+  3017: { name: '全资源存储上限', percent: false },
+  3018: { name: '木头资源存储上限', percent: false },
+  3019: { name: '石头资源存储上限', percent: false },
+  3020: { name: '食物资源存储上限', percent: false },
+  3021: { name: '铁矿资源存储上限', percent: false },
+  3022: { name: '人均工作效率', percent: false },
+  3023: { name: '工作速度', percent: true },
+  3024: { name: '人均建造工作效率', percent: false },
+  3025: { name: '人均科研工作效率', percent: false },
+  3026: { name: '人均训练工作效率', percent: false },
+  3027: { name: '建造队列可分配队伍数量', percent: false },
+  3028: { name: '食物队列可分配队伍数量', percent: false },
+  3029: { name: '伐木队列可分配队伍数量', percent: false },
+  3030: { name: '采石队列可分配队伍数量', percent: false },
+  3031: { name: '采矿队列可分配队伍数量', percent: false },
+  3032: { name: '科研队列可分配队伍数量', percent: false },
+  3033: { name: '练兵队列可分配队伍数量', percent: false },
+  3034: { name: '人均木头生产效率', percent: false },
+  3035: { name: '人均石头生产效率', percent: false },
+  3036: { name: '人均食物生产效率', percent: false },
+  3037: { name: '人均铁矿生产效率', percent: false },
+  3038: { name: '基础木头生产效率', percent: false },
+  3039: { name: '基础石头生产效率', percent: false },
+  3040: { name: '基础食物生产效率', percent: false },
+  3041: { name: '基础铁矿生产效率', percent: false },
+  3042: { name: '人均生产效率', percent: false },
+  3043: { name: '人均木头采集效率', percent: false },
+  3044: { name: '人均石头采集效率', percent: false },
+  3045: { name: '人均食物采集效率', percent: false },
+  3046: { name: '人均铁矿采集效率', percent: false },
+  3047: { name: '事件采集效率', percent: false },
+  4001: { name: '行军速度', percent: false },
+  4002: { name: '行军速度百分比', percent: true },
+  9001: { name: '英雄等级上限', percent: false },
+  9002: { name: '建筑等级上限', percent: false }
+};
+
+// ==================== Tab Switching ====================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'stdpop' && stdPopData.length === 0) {
+      initStdPopTab();
+    }
+  });
+});
+
+// ==================== Toast ====================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ==================== Copy ====================
+function copyText(elementId) {
+  const text = document.getElementById(elementId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('已复制到剪贴板');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制到剪贴板');
+  });
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('已复制到剪贴板');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制到剪贴板');
+  });
+}
+
+// ==================== Tab 1: Timestamp Tool ====================
+function updateCurrentTime() {
+  const now = new Date();
+  const formatted = formatDate(now);
+  const ts = Math.floor(now.getTime() / 1000);
+  const tsMs = now.getTime();
+  document.getElementById('currentTime').innerHTML =
+    '当前时间：<span>' + formatted + '</span> &nbsp;|&nbsp; 秒时间戳：<span>' + ts + '</span> &nbsp;|&nbsp; 毫秒时间戳：<span>' + tsMs + '</span>';
+}
+
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return y + '-' + m + '-' + d + ' ' + h + ':' + min + ':' + s;
+}
+
+function convertTimestamp() {
+  const input = document.getElementById('timestampInput').value.trim();
+  const unit = document.getElementById('timestampUnit').value;
+  if (!input) { showToast('请输入时间戳'); return; }
+  const num = parseInt(input);
+  if (isNaN(num)) { showToast('请输入有效的数字时间戳'); return; }
+  let ms;
+  if (unit === 'auto') { ms = input.length > 10 ? num : num * 1000; }
+  else if (unit === 's') { ms = num * 1000; }
+  else { ms = num; }
+  const date = new Date(ms);
+  if (isNaN(date.getTime())) { showToast('无效的时间戳'); return; }
+  document.getElementById('timestampResultValue').textContent = formatDate(date);
+  document.getElementById('timestampResult').style.display = 'flex';
+}
+
+function fillCurrentTimestamp() {
+  document.getElementById('timestampInput').value = Math.floor(Date.now() / 1000);
+}
+
+function fillCurrentDatetime() {
+  const now = new Date();
+  document.getElementById('dtYear').value = now.getFullYear();
+  document.getElementById('dtMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('dtDay').value = String(now.getDate()).padStart(2, '0');
+  document.getElementById('dtHour').value = String(now.getHours()).padStart(2, '0');
+  document.getElementById('dtMinute').value = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('dtSecond').value = String(now.getSeconds()).padStart(2, '0');
+}
+
+function convertToTimestamp() {
+  const y = parseInt(document.getElementById('dtYear').value) || 0;
+  const m = parseInt(document.getElementById('dtMonth').value) || 1;
+  const d = parseInt(document.getElementById('dtDay').value) || 1;
+  const h = parseInt(document.getElementById('dtHour').value) || 0;
+  const min = parseInt(document.getElementById('dtMinute').value) || 0;
+  const s = parseInt(document.getElementById('dtSecond').value) || 0;
+  if (y < 1970 || y > 9999) { showToast('请输入有效的年份 (1970-9999)'); return; }
+  const date = new Date(y, m - 1, d, h, min, s);
+  const ts = Math.floor(date.getTime() / 1000);
+  const tsMs = date.getTime();
+  document.getElementById('resultSeconds').textContent = ts;
+  document.getElementById('resultMillis').textContent = tsMs;
+  document.getElementById('toTimestampResult').style.display = 'block';
+}
+
+document.getElementById('timestampInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') convertTimestamp();
+});
+
+// ==================== Tab 2: JSON Tool ====================
+function renderJsonTree(data, indent) {
+  indent = indent || 0;
+  const padClose = '&nbsp;'.repeat(indent * 4);
+
+  if (data === null) return '<span class="json-null">null</span>';
+  if (typeof data === 'boolean') return '<span class="json-boolean">' + data + '</span>';
+  if (typeof data === 'number') return '<span class="json-number">' + data + '</span>';
+  if (typeof data === 'string') return '<span class="json-string">"' + escapeHtml(data) + '"</span>';
+
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '<span class="json-bracket">[]</span>';
+    let html = '<span class="json-toggle" onclick="toggleNode(this)">&#9660;</span>';
+    html += '<span class="json-bracket">[</span>';
+    html += '<span class="json-ellipsis" onclick="toggleNodeFromEllipsis(this)">...</span>';
+    html += '<span class="json-collapsible">\n';
+    data.forEach((item, i) => {
+      const comma = i < data.length - 1 ? ',' : '';
+      const childPad = '&nbsp;'.repeat((indent + 1) * 4);
+      html += '<div class="json-line">' + childPad + renderJsonTree(item, indent + 1) + comma + '</div>';
+    });
+    html += '<div class="json-line">' + padClose + '<span class="json-bracket">]</span></div>';
+    html += '</span>';
+    return html;
+  }
+
+  if (typeof data === 'object') {
+    const keys = Object.keys(data);
+    if (keys.length === 0) return '<span class="json-bracket">{}</span>';
+    let html = '<span class="json-toggle" onclick="toggleNode(this)">&#9660;</span>';
+    html += '<span class="json-bracket">{</span>';
+    html += '<span class="json-ellipsis" onclick="toggleNodeFromEllipsis(this)">...</span>';
+    html += '<span class="json-collapsible">\n';
+    keys.forEach((key, i) => {
+      const comma = i < keys.length - 1 ? ',' : '';
+      const childPad = '&nbsp;'.repeat((indent + 1) * 4);
+      html += '<div class="json-line">' + childPad +
+        '<span class="json-key">"' + escapeHtml(key) + '"</span>: ' +
+        renderJsonTree(data[key], indent + 1) + comma + '</div>';
+    });
+    html += '<div class="json-line">' + padClose + '<span class="json-bracket">}</span></div>';
+    html += '</span>';
+    return html;
+  }
+  return String(data);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function toggleNode(el) {
+  const parent = el.parentElement;
+  if (parent.classList.contains('json-collapsed')) {
+    parent.classList.remove('json-collapsed');
+    el.innerHTML = '&#9660;';
+  } else {
+    parent.classList.add('json-collapsed');
+    el.innerHTML = '&#9654;';
+  }
+}
+
+function toggleNodeFromEllipsis(el) {
+  const toggle = el.previousElementSibling.previousElementSibling;
+  if (toggle && toggle.classList.contains('json-toggle')) toggleNode(toggle);
+}
+
+function expandAll() {
+  const container = document.getElementById('jsonOutput');
+  container.querySelectorAll('.json-collapsed').forEach(el => el.classList.remove('json-collapsed'));
+  container.querySelectorAll('.json-toggle').forEach(el => { el.innerHTML = '&#9660;'; });
+}
+
+function collapseAll() {
+  const container = document.getElementById('jsonOutput');
+  container.querySelectorAll('.json-collapsible').forEach(el => {
+    const parent = el.parentElement;
+    if (!parent.classList.contains('json-collapsed')) parent.classList.add('json-collapsed');
+  });
+  container.querySelectorAll('.json-toggle').forEach(el => { el.innerHTML = '&#9654;'; });
+}
+
+function renderTree(obj) {
+  const container = document.getElementById('jsonOutput');
+  container.innerHTML = '<div class="json-line">' + renderJsonTree(obj, 0) + '</div>';
+}
+
+function analyzeJsonError(input, errorMsg) {
+  let suggestions = [];
+  const posMatch = errorMsg.match(/position\s+(\d+)/i);
+  const pos = posMatch ? parseInt(posMatch[1]) : -1;
+  const trimmed = input.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('['))
+    suggestions.push('JSON 必须以 { 或 [ 开头');
+  if (!trimmed.endsWith('}') && !trimmed.endsWith(']'))
+    suggestions.push('JSON 必须以 } 或 ] 结尾');
+  const openBraces = (input.match(/\{/g) || []).length;
+  const closeBraces = (input.match(/\}/g) || []).length;
+  const openBrackets = (input.match(/\[/g) || []).length;
+  const closeBrackets = (input.match(/\]/g) || []).length;
+  if (openBraces > closeBraces) suggestions.push('缺少 ' + (openBraces - closeBraces) + ' 个 }');
+  else if (closeBraces > openBraces) suggestions.push('多余 ' + (closeBraces - openBraces) + ' 个 }');
+  if (openBrackets > closeBrackets) suggestions.push('缺少 ' + (openBrackets - closeBrackets) + ' 个 ]');
+  else if (closeBrackets > openBrackets) suggestions.push('多余 ' + (closeBrackets - openBrackets) + ' 个 ]');
+  if (/,\s*[\}\]]/.test(input)) suggestions.push('存在多余的逗号（trailing comma）');
+  if (input.includes("'")) suggestions.push('JSON 不支持单引号，请替换为双引号 "');
+  if (/[\{,]\s*[a-zA-Z_]\w*\s*:/.test(input)) suggestions.push('JSON 的 key 必须用双引号包裹');
+
+  let contextInfo = '';
+  if (pos > 0 && pos < input.length) {
+    const start = Math.max(0, pos - 20);
+    const end = Math.min(input.length, pos + 20);
+    contextInfo = '错误位置附近: ...' + input.substring(start, pos) + '【' + (input[pos] || '末尾') + '】' + input.substring(pos + 1, end) + '...';
+  }
+
+  let fixedJson = null;
+  try {
+    let attempt = input.trim();
+    let stack = [];
+    for (let i = 0; i < attempt.length; i++) {
+      if (attempt[i] === '{') stack.push('}');
+      else if (attempt[i] === '[') stack.push(']');
+      else if (attempt[i] === '}' || attempt[i] === ']') stack.pop();
+    }
+    if (stack.length > 0) {
+      const autoSuffix = stack.reverse().join('');
+      try {
+        fixedJson = JSON.parse(attempt + autoSuffix);
+        suggestions.unshift('尝试在末尾补充 "' + autoSuffix + '" 可修复');
+      } catch(e3) {}
+    }
+  } catch(e) {}
+
+  return { suggestions, contextInfo, fixedJson };
+}
+
+function formatJson() {
+  const input = document.getElementById('jsonInput').value.trim();
+  const statusBar = document.getElementById('jsonStatus');
+  if (!input) { showToast('请输入 JSON 数据'); return; }
+  try {
+    const obj = JSON.parse(input);
+    currentJsonObj = obj;
+    renderTree(obj);
+    statusBar.className = 'status-bar success';
+    statusBar.textContent = 'JSON 格式正确，已格式化';
+  } catch (e) {
+    const analysis = analyzeJsonError(input, e.message);
+    if (analysis.fixedJson) {
+      currentJsonObj = analysis.fixedJson;
+      renderTree(analysis.fixedJson);
+      let msg = 'JSON 已自动修复并显示。';
+      if (analysis.suggestions.length > 0) msg += ' 修复方式: ' + analysis.suggestions[0];
+      statusBar.className = 'status-bar success';
+      statusBar.innerHTML = msg + '<br><button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="applyFix()">应用修复到输入框</button>';
+    } else {
+      document.getElementById('jsonOutput').innerHTML = '';
+      currentJsonObj = null;
+      let errorHtml = 'JSON 格式错误：' + e.message;
+      if (analysis.contextInfo) errorHtml += '<br><br><b>定位：</b>' + escapeHtml(analysis.contextInfo);
+      if (analysis.suggestions.length > 0) {
+        errorHtml += '<br><br><b>修复建议：</b><br>';
+        analysis.suggestions.forEach((s, i) => { errorHtml += (i + 1) + '. ' + s + '<br>'; });
+      }
+      statusBar.className = 'status-bar error';
+      statusBar.innerHTML = errorHtml;
+    }
+  }
+}
+
+function applyFix() {
+  if (currentJsonObj) {
+    document.getElementById('jsonInput').value = JSON.stringify(currentJsonObj, null, 4);
+    document.getElementById('jsonStatus').className = 'status-bar success';
+    document.getElementById('jsonStatus').textContent = '已将修复后的 JSON 应用到输入框';
+  }
+}
+
+function compressJson() {
+  const input = document.getElementById('jsonInput').value.trim();
+  const statusBar = document.getElementById('jsonStatus');
+  if (!input) { showToast('请输入 JSON 数据'); return; }
+  try {
+    const obj = JSON.parse(input);
+    document.getElementById('jsonInput').value = JSON.stringify(obj);
+    currentJsonObj = obj;
+    renderTree(obj);
+    statusBar.className = 'status-bar success';
+    statusBar.textContent = 'JSON 已压缩';
+  } catch (e) {
+    statusBar.className = 'status-bar error';
+    statusBar.textContent = 'JSON 格式错误：' + e.message;
+  }
+}
+
+function copyJson() {
+  if (!currentJsonObj) { showToast('没有可复制的内容'); return; }
+  copyToClipboard(JSON.stringify(currentJsonObj, null, 4));
+}
+
+function clearJson() {
+  document.getElementById('jsonInput').value = '';
+  document.getElementById('jsonOutput').innerHTML = '<span class="json-placeholder">格式化结果将显示在这里...</span>';
+  document.getElementById('jsonStatus').className = 'status-bar';
+  currentJsonObj = null;
+}
+
+function loadSample() {
+  const sample = {"name":"游戏公式计算工具箱","version":"1.0.0","features":["时间戳转换","JSON格式化","属性导入","工作计算","伤害计算"],"config":{"theme":"light","language":"zh-CN"},"data":[{"id":1,"title":"示例","status":"active"}]};
+  document.getElementById('jsonInput').value = JSON.stringify(sample);
+  formatJson();
+  showToast('已加载示例数据');
+}
+
+document.getElementById('jsonInput').addEventListener('paste', function() { setTimeout(formatJson, 0); });
+document.getElementById('jsonInput').addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.key === 'Enter') formatJson();
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = this.selectionStart;
+    const end = this.selectionEnd;
+    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+    this.selectionStart = this.selectionEnd = start + 4;
+  }
+});
+
+// ==================== Tab 3: Work Calculator ====================
+// Auto-parse JSON on paste
+document.addEventListener('DOMContentLoaded', function() {
+  const wkJsonInput = document.getElementById('wkJsonInput');
+  if (wkJsonInput) {
+    wkJsonInput.addEventListener('paste', function(e) {
+      setTimeout(function() {
+        autoParseAndLoad(wkJsonInput.value);
+      }, 50);
+    });
+    wkJsonInput.addEventListener('input', function(e) {
+      // Debounce auto-parse on manual input
+      clearTimeout(wkJsonInput._debounce);
+      wkJsonInput._debounce = setTimeout(function() {
+        autoParseAndLoad(wkJsonInput.value);
+      }, 500);
+    });
+  }
+});
+
+function autoParseAndLoad(jsonStr) {
+  if (!jsonStr || !jsonStr.trim()) return;
+  const regex = /"attrId"\s*:\s*(\d+)[^}]*?"value"\s*:\s*"([^"]+)"/g;
+  let match;
+  let count = 0;
+  while ((match = regex.exec(jsonStr)) !== null) {
+    const attrId = parseInt(match[1]);
+    const value = parseFloat(match[2]);
+    if (!isNaN(value)) {
+      const info = ATTR_MAP[attrId];
+      const val = info && info.percent ? value / 10000 : value;
+      const el = document.getElementById('wk-' + attrId);
+      if (el) {
+        el.value = val;
+        count++;
+      }
+    }
+  }
+  // Fallback: try without quotes around value
+  if (count === 0) {
+    const regex2 = /"attrId"\s*:\s*(\d+)[^}]*?"value"\s*:\s*(\d+\.?\d*)/g;
+    while ((match = regex2.exec(jsonStr)) !== null) {
+      const attrId = parseInt(match[1]);
+      const value = parseFloat(match[2]);
+      if (!isNaN(value)) {
+        const info = ATTR_MAP[attrId];
+        const val = info && info.percent ? value / 10000 : value;
+        const el = document.getElementById('wk-' + attrId);
+        if (el) {
+          el.value = val;
+          count++;
+        }
+      }
+    }
+  }
+  const statusEl = document.getElementById('wkParseStatus');
+  if (statusEl) {
+    statusEl.textContent = count > 0 ? '已自动导入 ' + count + ' 条属性' : '未识别到属性数据';
+    statusEl.style.color = count > 0 ? 'var(--success)' : 'var(--error)';
+  }
+  // Auto-calculate after import
+  if (count > 0) calcWork();
+}
+
+function clearWkJson() {
+  const el = document.getElementById('wkJsonInput');
+  if (el) el.value = '';
+  const statusEl = document.getElementById('wkParseStatus');
+  if (statusEl) statusEl.textContent = '';
+}
+function initAttrRefTable() {
+  const tbody = document.querySelector('#attrRefTable tbody');
+  let html = '';
+  for (const [id, info] of Object.entries(ATTR_MAP)) {
+    html += '<tr><td>' + id + '</td><td>' + info.name + '</td><td>' +
+      (info.percent ? '<span class="badge badge-percent">万分比</span>' : '<span class="badge badge-raw">数值</span>') +
+      '</td></tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+function getWkVal(id) {
+  const el = document.getElementById('wk-' + id);
+  return el ? (parseFloat(el.value) || 0) : 0;
+}
+
+function formatTime(seconds) {
+  if (!isFinite(seconds) || seconds <= 0) return '--';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function calcWork() {
+  const pop = parseFloat(document.getElementById('wkPop').value) || 0;
+  const stdPop = parseFloat(document.getElementById('wkStdPop').value) || 1;
+  const workLoad = parseFloat(document.getElementById('wkWorkLoad').value) || 0;
+
+  // Population factor
+  let popFactor;
+  if (pop < stdPop) {
+    popFactor = pop / stdPop;
+  } else {
+    popFactor = 1 + 0.3 * Math.log(pop / stdPop);
+  }
+  const totalPopContribution = stdPop * popFactor;
+
+  // Get attribute values (same as VBA 工作计算宏)
+  const baseEff = getWkVal(3022);   // 3022 人均工作效率 → VBA baseEff
+  const speedWork = getWkVal(3023);
+  const effBuild = getWkVal(3024);
+  const speedBuild = getWkVal(3001);
+  const effResearch = getWkVal(3025);
+  const speedResearch = getWkVal(3002);
+  const speedResearchSpec = getWkVal(3032);
+  const effTrain = getWkVal(3026);
+  const speedTrain = getWkVal(3003);
+  const speedTrainSpec = getWkVal(3033);
+  const effEvent = getWkVal(3042);
+  const speedEvent = getWkVal(3004);
+  const resSpeedAll = getWkVal(3012);
+  const resBaseWood = getWkVal(3038);
+  const resEffWood = getWkVal(3034);
+  const speedWood = getWkVal(3013);
+  const resBaseStone = getWkVal(3039);
+  const resEffStone = getWkVal(3035);
+  const speedStone = getWkVal(3014);
+  const resBaseFood = getWkVal(3040);
+  const resEffFood = getWkVal(3036);
+  const speedFood = getWkVal(3015);
+  const resBaseIron = getWkVal(3041);
+  const resEffIron = getWkVal(3037);
+  const speedIron = getWkVal(3016);
+
+  // Display pop info
+  document.getElementById('popInfo').innerHTML =
+    '工作人口: <b>' + pop + '</b> | 标准人口: <b>' + stdPop + '</b> | ' +
+    '人口因子: <b>' + popFactor.toFixed(4) + '</b> | 总人口贡献: <b>' + totalPopContribution.toFixed(2) + '</b>';
+
+  // Time calculations
+  let timeHtml = '';
+  if (workLoad > 0) {
+    const timeBuild = (workLoad / ((baseEff + effBuild) * totalPopContribution * (1 + speedWork + speedBuild))) * 3600;
+    const timeResearch = (workLoad / ((baseEff + effResearch) * totalPopContribution * (1 + speedWork + speedResearch + speedResearchSpec))) * 3600;
+    const timeTrain = (workLoad / ((baseEff + effTrain) * totalPopContribution * (1 + speedWork + speedTrain + speedTrainSpec))) * 3600;
+    const timeEvent = (workLoad / ((baseEff + effEvent) * totalPopContribution * (1 + speedWork + speedEvent))) * 3600;
+
+    timeHtml =
+      '<div class="calc-card"><div class="card-label">建造时间</div><div class="card-value time-val">' + formatTime(timeBuild) + '</div></div>' +
+      '<div class="calc-card"><div class="card-label">科研时间</div><div class="card-value time-val">' + formatTime(timeResearch) + '</div></div>' +
+      '<div class="calc-card"><div class="card-label">训练时间</div><div class="card-value time-val">' + formatTime(timeTrain) + '</div></div>' +
+      '<div class="calc-card"><div class="card-label">采集/事件时间</div><div class="card-value time-val">' + formatTime(timeEvent) + '</div></div>';
+  } else {
+    timeHtml = '<div style="color:var(--text-light);font-size:13px;padding:8px;">请输入工作量以计算时间</div>';
+  }
+  document.getElementById('timeResults').innerHTML = timeHtml;
+
+  // Resource output
+  const outWood = (resBaseWood + resEffWood * totalPopContribution) * (1 + resSpeedAll + speedWood);
+  const outStone = (resBaseStone + resEffStone * totalPopContribution) * (1 + resSpeedAll + speedStone);
+  const outFood = (resBaseFood + resEffFood * totalPopContribution) * (1 + resSpeedAll + speedFood);
+  const outIron = (resBaseIron + resEffIron * totalPopContribution) * (1 + resSpeedAll + speedIron);
+
+  document.getElementById('resResults').innerHTML =
+    '<div class="calc-card"><div class="card-label">木头产出</div><div class="card-value res-val">' + outWood.toFixed(2) + '</div></div>' +
+    '<div class="calc-card"><div class="card-label">石头产出</div><div class="card-value res-val">' + outStone.toFixed(2) + '</div></div>' +
+    '<div class="calc-card"><div class="card-label">食物产出</div><div class="card-value res-val">' + outFood.toFixed(2) + '</div></div>' +
+    '<div class="calc-card"><div class="card-label">铁矿产出</div><div class="card-value res-val">' + outIron.toFixed(2) + '</div></div>';
+}
+
+// ==================== Tab 5: Damage Calculator (Multi-Scenario) ====================
+const DMG_PCT_KEYS = ['atkNormalAdd','defNormalRed','atkSkillAdd','defSkillRed','critDmgAdd','critDmgRed','restrainAdd','restrainRed','dmgDeepen','dmgRed','defVuln','stackAdd','stackRed','pvpAdd','pvpRed','pveAdd','pveRed'];
+
+function makeDefaultScenario() {
+  return {
+    atk: 0, skillCoef: 0.3333, def: 0,
+    atkMorale: 266, defMorale: 201,
+    atkNormalAdd: 0, defNormalRed: 0, atkSkillAdd: 0, defSkillRed: 0,
+    dodge: false, triggerCrit: false, isPvp: false,
+    critDmgAdd: 0, critDmgRed: 0, restrainAdd: 0, restrainRed: 0,
+    dmgDeepen: 0, dmgRed: 0, defVuln: 0,
+    stackAdd: 0, stackRed: 0,
+    pvpAdd: 0, pvpRed: 0, pveAdd: 0, pveRed: 0,
+    atkCmd: 0, defCmd: 0
+  };
+}
+
+let dmgScenarios = [makeDefaultScenario()];
+let dmgActiveIdx = 0;
+let dmgShowCompare = false;
+
+// 安全表达式求值：仅支持数字、+-*/、括号、小数点
+function evalInput(val) {
+  if (typeof val !== 'string') return parseFloat(val) || 0;
+  const trimmed = val.trim();
+  if (trimmed.startsWith('=')) {
+    const expr = trimmed.substring(1).trim();
+    // 仅允许安全字符：数字、+-*/、括号、小数点、空格
+    if (/^[\d\s\+\-\*\/\(\)\.]+$/.test(expr)) {
+      try {
+        const result = Function('"use strict"; return (' + expr + ')')();
+        return isNaN(result) || !isFinite(result) ? 0 : result;
+      } catch(e) { return parseFloat(val) || 0; }
+    }
+  }
+  return parseFloat(val) || 0;
+}
+
+function saveCurrentScenario() {
+  const s = dmgScenarios[dmgActiveIdx];
+  document.querySelectorAll('.dmg-val').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) s[key] = evalInput(el.value);
+  });
+  document.querySelectorAll('.dmg-check').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) s[key] = el.checked;
+  });
+}
+
+function loadScenario(idx) {
+  const s = dmgScenarios[idx];
+  document.querySelectorAll('.dmg-val').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) {
+      const val = (s[key] !== undefined) ? s[key] : 0;
+      // 值为0时不显示，让placeholder展示；非0时显示实际值
+      el.value = (val === 0) ? '' : val;
+    }
+  });
+  document.querySelectorAll('.dmg-check').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) el.checked = !!s[key];
+  });
+  updatePctHints();
+  calcDamage();
+}
+
+function updatePctHints() {
+  document.querySelectorAll('.dmg-pct-input').forEach(el => {
+    const hint = el.nextElementSibling;
+    if (hint && hint.classList.contains('dmg-pct-hint')) {
+      const val = evalInput(el.value);
+      hint.textContent = (val * 100).toFixed(2) + '%';
+    }
+  });
+}
+
+function renderScenarioTabs() {
+  const container = document.getElementById('dmgScenarioTabs');
+  let html = '';
+  dmgScenarios.forEach((s, i) => {
+    const active = i === dmgActiveIdx ? ' active' : '';
+    const showClose = dmgScenarios.length > 1;
+    html += '<div class="dmg-scenario-tab' + active + '" data-scenario="' + i + '" onclick="switchDmgScenario(' + i + ')">' +
+      '<span>场景 ' + (i + 1) + '</span>' +
+      (showClose ? '<span class="scenario-close" onclick="event.stopPropagation();closeDmgScenario(' + i + ')" title="关闭">&times;</span>' : '') +
+      '</div>';
+  });
+  html += '<button class="dmg-scenario-btn" onclick="addDmgScenario()" title="新增场景">+</button>';
+  container.innerHTML = html;
+}
+
+function switchDmgScenario(idx) {
+  if (idx === dmgActiveIdx) return;
+  saveCurrentScenario();
+  dmgActiveIdx = idx;
+  loadScenario(idx);
+  renderScenarioTabs();
+}
+
+function addDmgScenario() {
+  saveCurrentScenario();
+  // Copy current scenario values
+  const copy = Object.assign({}, dmgScenarios[dmgActiveIdx]);
+  dmgScenarios.push(copy);
+  dmgActiveIdx = dmgScenarios.length - 1;
+  loadScenario(dmgActiveIdx);
+  renderScenarioTabs();
+  showToast('已新增场景 ' + (dmgActiveIdx + 1));
+}
+
+function closeDmgScenario(idx) {
+  if (dmgScenarios.length <= 1) return;
+  dmgScenarios.splice(idx, 1);
+  if (dmgActiveIdx >= dmgScenarios.length) dmgActiveIdx = dmgScenarios.length - 1;
+  if (dmgActiveIdx < 0) dmgActiveIdx = 0;
+  loadScenario(dmgActiveIdx);
+  renderScenarioTabs();
+  if (dmgShowCompare) refreshCompareTable();
+}
+
+function copyCurrentScenario() {
+  saveCurrentScenario();
+  const copy = Object.assign({}, dmgScenarios[dmgActiveIdx]);
+  dmgScenarios.push(copy);
+  dmgActiveIdx = dmgScenarios.length - 1;
+  loadScenario(dmgActiveIdx);
+  renderScenarioTabs();
+  showToast('已复制当前场景为场景 ' + (dmgActiveIdx + 1));
+}
+
+function toggleDmgCompare() {
+  dmgShowCompare = !dmgShowCompare;
+  const panel = document.getElementById('dmgComparePanel');
+  if (dmgShowCompare) {
+    panel.style.display = 'block';
+    refreshCompareTable();
+  } else {
+    panel.style.display = 'none';
+  }
+}
+
+function refreshCompareTable() {
+  saveCurrentScenario();
+  const tbody = document.querySelector('#dmgCompareTable tbody');
+  let html = '';
+  dmgScenarios.forEach((s, i) => {
+    const result = runDamageCalc(s);
+    const mode = s.isPvp ? 'PVP' : 'PVE';
+    html += '<tr>' +
+      '<td><b>场景 ' + (i + 1) + '</b></td>' +
+      '<td>' + s.atk + '</td>' +
+      '<td>' + s.def + '</td>' +
+      '<td class="compare-normal">' + result.normal + '</td>' +
+      '<td class="compare-skill">' + result.skill + '</td>' +
+      '<td class="compare-crit">' + result.crit + '</td>' +
+      '<td>' + mode + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function getDmgData() {
+  const s = {};
+  document.querySelectorAll('.dmg-val').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) s[key] = evalInput(el.value);
+  });
+  document.querySelectorAll('.dmg-check').forEach(el => {
+    const key = el.dataset.key;
+    if (key !== undefined) s[key] = el.checked;
+  });
+  return s;
+}
+
+function runDamageCalc(s) {
+  const K = 2.5;
+  const atkTotal = s.atk;
+  const skillCoef = s.skillCoef;
+  const defTotal = s.def;
+  const atkMorale = s.atkMorale || 1;
+  const defMorale = s.defMorale || 1;
+  const atkNormalAdd = s.atkNormalAdd;
+  const defNormalRed = s.defNormalRed;
+  const atkSkillAdd = s.atkSkillAdd;
+  const defSkillRed = s.defSkillRed;
+  const triggerCrit = s.triggerCrit;
+  const isPvp = s.isPvp;
+
+  if (s.dodge) return { normal: '0', skill: '0', crit: '0', steps: ['Step 1: 触发闪避 -> 伤害 = 0'] };
+
+  let denom2 = atkTotal + K * defTotal;
+  if (denom2 <= 0) denom2 = 1;
+  const baseDmg = (atkTotal * atkTotal) / denom2;
+
+  let dmgNormal = baseDmg * (skillCoef + atkNormalAdd - defNormalRed);
+  let dmgSkill = baseDmg * (skillCoef + atkSkillAdd - defSkillRed);
+
+  const critDiff = s.critDmgAdd - s.critDmgRed;
+  const critFactor = 1 + Math.max(critDiff, 0);
+  let dmgCrit = dmgSkill * critFactor;
+  if (triggerCrit) {
+    dmgNormal *= critFactor;
+    dmgSkill *= critFactor;
+  }
+
+  // Apply pipeline
+  function applyPipeline(dmg) {
+    // Step 5: Restrain
+    dmg *= (1 + s.restrainAdd) * (1 - s.restrainRed);
+    // Step 6: Morale
+    dmg *= Math.max(atkMorale / defMorale, 1);
+    // Step 7: Stack
+    const stackCoef = s.stackAdd - s.stackRed;
+    dmg *= (stackCoef > -1) ? (1 + stackCoef) : (1 / (1 + Math.abs(stackCoef)));
+    // Step 8: Deepen/Reduce
+    dmg *= (1 + s.dmgDeepen) * (1 - s.dmgRed);
+    // Step 9: Vulnerability
+    dmg *= (1 + s.defVuln);
+    // Step 10: PVP/PVE
+    dmg *= isPvp ? (1 + s.pvpAdd - s.pvpRed) : (1 + s.pveAdd - s.pveRed);
+    // Step 11: Command
+    if (s.atkCmd > s.defCmd) dmg *= 1.05;
+    return dmg;
+  }
+
+  dmgNormal = applyPipeline(dmgNormal);
+  dmgSkill = applyPipeline(dmgSkill);
+  dmgCrit = applyPipeline(dmgCrit);
+
+  return {
+    normal: Math.floor(Math.max(dmgNormal, 0)).toLocaleString(),
+    skill: Math.floor(Math.max(dmgSkill, 0)).toLocaleString(),
+    crit: Math.floor(Math.max(dmgCrit, 0)).toLocaleString()
+  };
+}
+
+function calcDamage() {
+  saveCurrentScenario();
+  const s = dmgScenarios[dmgActiveIdx];
+  const K = 2.5;
+  const atkTotal = s.atk;
+  const skillCoef = s.skillCoef;
+  const defTotal = s.def;
+  const atkMorale = s.atkMorale || 1;
+  const defMorale = s.defMorale || 1;
+  const atkNormalAdd = s.atkNormalAdd;
+  const defNormalRed = s.defNormalRed;
+  const atkSkillAdd = s.atkSkillAdd;
+  const defSkillRed = s.defSkillRed;
+  const dodge = s.dodge;
+  const triggerCrit = s.triggerCrit;
+  const isPvp = s.isPvp;
+  const critDmgAdd = s.critDmgAdd;
+  const critDmgRed = s.critDmgRed;
+  const restrainAdd = s.restrainAdd;
+  const restrainRed = s.restrainRed;
+  const dmgDeepen = s.dmgDeepen;
+  const dmgRed = s.dmgRed;
+  const defVuln = s.defVuln;
+  const stackAdd = s.stackAdd;
+  const stackRed = s.stackRed;
+  const pvpAdd = s.pvpAdd;
+  const pvpRed = s.pvpRed;
+  const pveAdd = s.pveAdd;
+  const pveRed = s.pveRed;
+  const atkCmd = s.atkCmd;
+  const defCmd = s.defCmd;
+
+  const steps = [];
+
+  // Step 1: Dodge
+  if (dodge) {
+    document.getElementById('dmgResNormal').textContent = '0';
+    document.getElementById('dmgResSkill').textContent = '0';
+    document.getElementById('dmgResCrit').textContent = '0';
+    steps.push('Step 1: 触发闪避 -> 伤害 = 0');
+    document.getElementById('dmgSteps').style.display = 'block';
+    document.getElementById('dmgSteps').innerHTML = steps.map(s => '<div class="step-line">' + s + '</div>').join('');
+    return;
+  }
+  steps.push('Step 1: 未闪避，继续计算');
+
+  // Step 2: Base damage (aligned with VBA: If denom <= 0 Then denom = 1)
+  let denom = atkTotal + K * defTotal;
+  if (denom <= 0) denom = 1;
+  const baseDmg = (atkTotal * atkTotal) / denom;
+  steps.push('Step 2: baseDmg = ' + atkTotal + '^2 / (' + atkTotal + ' + ' + K + '*' + defTotal + ') = ' + baseDmg.toFixed(2));
+
+  // Step 3: Normal/Skill damage split
+  let dmgNormal = baseDmg * (skillCoef + atkNormalAdd - defNormalRed);
+  let dmgSkill = baseDmg * (skillCoef + atkSkillAdd - defSkillRed);
+  steps.push('Step 3: dmgNormal = ' + baseDmg.toFixed(2) + ' * (' + skillCoef + ' + ' + atkNormalAdd + ' - ' + defNormalRed + ') = ' + dmgNormal.toFixed(2));
+  steps.push('Step 3: dmgSkill = ' + baseDmg.toFixed(2) + ' * (' + skillCoef + ' + ' + atkSkillAdd + ' - ' + defSkillRed + ') = ' + dmgSkill.toFixed(2));
+
+  // Step 4: Crit
+  const critDiff = critDmgAdd - critDmgRed;
+  const critFactor = 1 + Math.max(critDiff, 0);
+  let dmgCrit = dmgSkill * critFactor;
+  steps.push('Step 4: critFactor = 1 + max(' + critDmgAdd + ' - ' + critDmgRed + ', 0) = ' + critFactor.toFixed(4));
+  if (triggerCrit) {
+    dmgNormal *= critFactor;
+    dmgSkill *= critFactor;
+    steps.push('Step 4: 触发暴击! 所有伤害 *= ' + critFactor.toFixed(4));
+  }
+  steps.push('Step 4: dmgCrit = ' + dmgCrit.toFixed(2));
+
+  // Step 5: Restrain
+  const restrainMul = (1 + restrainAdd) * (1 - restrainRed);
+  dmgNormal *= restrainMul; dmgSkill *= restrainMul; dmgCrit *= restrainMul;
+  steps.push('Step 5: 克制 = (1+' + restrainAdd + ') * (1-' + restrainRed + ') = ' + restrainMul.toFixed(4));
+
+  // Step 6: Morale
+  const moraleRatio = Math.max(atkMorale / defMorale, 1);
+  dmgNormal *= moraleRatio; dmgSkill *= moraleRatio; dmgCrit *= moraleRatio;
+  steps.push('Step 6: 士气 = max(' + atkMorale + '/' + defMorale + ', 1) = ' + moraleRatio.toFixed(4));
+
+  // Step 7: Stack
+  const stackCoef = stackAdd - stackRed;
+  let stackMul = (stackCoef > -1) ? (1 + stackCoef) : (1 / (1 + Math.abs(stackCoef)));
+  dmgNormal *= stackMul; dmgSkill *= stackMul; dmgCrit *= stackMul;
+  steps.push('Step 7: 累加型 coef=' + stackCoef.toFixed(4) + ' -> mul=' + stackMul.toFixed(4));
+
+  // Step 8: Deepen/Reduce
+  const deepenMul = (1 + dmgDeepen) * (1 - dmgRed);
+  dmgNormal *= deepenMul; dmgSkill *= deepenMul; dmgCrit *= deepenMul;
+  steps.push('Step 8: 加深/减免 = (1+' + dmgDeepen + ') * (1-' + dmgRed + ') = ' + deepenMul.toFixed(4));
+
+  // Step 9: Vulnerability
+  const vulnMul = 1 + defVuln;
+  dmgNormal *= vulnMul; dmgSkill *= vulnMul; dmgCrit *= vulnMul;
+  steps.push('Step 9: 易伤 = 1+' + defVuln + ' = ' + vulnMul.toFixed(4));
+
+  // Step 10: PVP/PVE
+  let pvMul = isPvp ? (1 + pvpAdd - pvpRed) : (1 + pveAdd - pveRed);
+  steps.push('Step 10: ' + (isPvp ? 'PVP' : 'PVE') + ' = ' + (isPvp ? ('1 + ' + pvpAdd + ' - ' + pvpRed) : ('1 + ' + pveAdd + ' - ' + pveRed)) + ' = ' + pvMul.toFixed(4));
+  dmgNormal *= pvMul; dmgSkill *= pvMul; dmgCrit *= pvMul;
+
+  // Step 11: Command
+  let cmdMul = 1;
+  if (atkCmd > defCmd) { cmdMul = 1.05; steps.push('Step 11: 指挥优势(' + atkCmd + '>' + defCmd + ') *= 1.05'); }
+  else { steps.push('Step 11: 无指挥优势(' + atkCmd + '<=' + defCmd + ')'); }
+  dmgNormal *= cmdMul; dmgSkill *= cmdMul; dmgCrit *= cmdMul;
+
+  // Display results
+  document.getElementById('dmgResNormal').textContent = Math.floor(Math.max(dmgNormal, 0)).toLocaleString();
+  document.getElementById('dmgResSkill').textContent = Math.floor(Math.max(dmgSkill, 0)).toLocaleString();
+  document.getElementById('dmgResCrit').textContent = Math.floor(Math.max(dmgCrit, 0)).toLocaleString();
+
+  document.getElementById('dmgSteps').style.display = 'block';
+  document.getElementById('dmgSteps').innerHTML = steps.map(s => '<div class="step-line">' + s + '</div>').join('');
+
+  // Refresh compare table if visible
+  if (dmgShowCompare) refreshCompareTable();
+}
+
+// Percentage hint real-time update + expression auto-evaluate on blur
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('dmg-pct-input')) {
+    const hint = e.target.nextElementSibling;
+    if (hint && hint.classList.contains('dmg-pct-hint')) {
+      const val = evalInput(e.target.value);
+      hint.textContent = (val * 100).toFixed(2) + '%';
+    }
+  }
+});
+
+// 失焦时自动计算表达式（如 =1*1.2），替换为计算结果
+document.addEventListener('blur', function(e) {
+  if (e.target.classList.contains('dmg-val')) {
+    const raw = e.target.value.trim();
+    if (raw.startsWith('=')) {
+      const result = evalInput(raw);
+      e.target.value = result;
+      // 同步更新百分比提示
+      if (e.target.classList.contains('dmg-pct-input')) {
+        const hint = e.target.nextElementSibling;
+        if (hint && hint.classList.contains('dmg-pct-hint')) {
+          hint.textContent = (result * 100).toFixed(2) + '%';
+        }
+      }
+    }
+  }
+}, true);
+
+// ==================== Tab 6: Standard Population ====================
+// Default data from 公式计算.xlsm "标准人口" sheet
+let stdPopData = [];
+
+var STDPOP_DEFAULT = [[1, "伐木场", 1, 3600], [2, "伐木场", 14, 3600], [3, "伐木场", 28, 3600], [4, "伐木场", 10000, 3600], [5, "伐木场", 50000, 7000], [6, "伐木场", 210000, 10000], [7, "伐木场", 670000, 13000], [8, "伐木场", 1400000, 16000], [9, "伐木场", 2800000, 20000], [10, "伐木场", 7100000, 20000], [11, "伐木场", 14000000, 25000], [12, "伐木场", 27000000, 31000], [13, "伐木场", 46000000, 38000], [14, "伐木场", 78000000, 46000], [15, "伐木场", 140000000, 55000], [16, "伐木场", 260000000, 65000], [17, "伐木场", 410000000, 76000], [18, "伐木场", 690000000, 88000], [19, "伐木场", 1200000000, 101000], [20, "伐木场", 1900000000, 115000], [21, "伐木场", 3300000000, 130000], [22, "伐木场", 5000000000, 146000], [23, "伐木场", 7700000000, 163000], [24, "伐木场", 17000000000, 181000], [25, "伐木场", 26000000000, 200000], [26, "伐木场", 42000000000, 220000], [27, "伐木场", 66000000000, 241000], [28, "伐木场", 96000000000, 263000], [29, "伐木场", 140000000000, 286000], [30, "伐木场", "", 286000], [1, "采石场", 3, 3600], [2, "采石场", 34, 3600], [3, "采石场", 960, 3600], [4, "采石场", 13000, 3600], [5, "采石场", 62000, 7000], [6, "采石场", 210000, 10000], [7, "采石场", 670000, 13000], [8, "采石场", 1400000, 16000], [9, "采石场", 2800000, 20000], [10, "采石场", 7100000, 20000], [11, "采石场", 14000000, 25000], [12, "采石场", 27000000, 31000], [13, "采石场", 46000000, 38000], [14, "采石场", 78000000, 46000], [15, "采石场", 140000000, 55000], [16, "采石场", 260000000, 65000], [17, "采石场", 410000000, 76000], [18, "采石场", 690000000, 88000], [19, "采石场", 1200000000, 101000], [20, "采石场", 1900000000, 115000], [21, "采石场", 3300000000, 130000], [22, "采石场", 5000000000, 146000], [23, "采石场", 7700000000, 163000], [24, "采石场", 17000000000, 181000], [25, "采石场", 26000000000, 200000], [26, "采石场", 42000000000, 220000], [27, "采石场", 66000000000, 241000], [28, "采石场", 96000000000, 263000], [29, "采石场", 140000000000, 286000], [30, "采石场", "", 286000], [1, "狩猎营地", 1, 3600], [2, "狩猎营地", 14, 3600], [3, "狩猎营地", 28, 3600], [4, "狩猎营地", 10000, 3600], [5, "狩猎营地", 62000, 7000], [6, "狩猎营地", 210000, 10000], [7, "狩猎营地", 670000, 13000], [8, "狩猎营地", 1400000, 16000], [9, "狩猎营地", 2800000, 20000], [10, "狩猎营地", 7100000, 20000], [11, "狩猎营地", 14000000, 25000], [12, "狩猎营地", 27000000, 31000], [13, "狩猎营地", 46000000, 38000], [14, "狩猎营地", 78000000, 46000], [15, "狩猎营地", 140000000, 55000], [16, "狩猎营地", 260000000, 65000], [17, "狩猎营地", 410000000, 76000], [18, "狩猎营地", 690000000, 88000], [19, "狩猎营地", 1200000000, 101000], [20, "狩猎营地", 1900000000, 115000], [21, "狩猎营地", 3300000000, 130000], [22, "狩猎营地", 5000000000, 146000], [23, "狩猎营地", 7700000000, 163000], [24, "狩猎营地", 17000000000, 181000], [25, "狩猎营地", 26000000000, 200000], [26, "狩猎营地", 42000000000, 220000], [27, "狩猎营地", 66000000000, 241000], [28, "狩猎营地", 96000000000, 263000], [29, "狩猎营地", 140000000000, 286000], [30, "狩猎营地", "", 286000], [1, "麦田", 3, 3600], [2, "麦田", 34, 3600], [3, "麦田", 960, 3600], [4, "麦田", 13000, 3600], [5, "麦田", 62000, 7000], [6, "麦田", 210000, 10000], [7, "麦田", 670000, 13000], [8, "麦田", 1400000, 16000], [9, "麦田", 2800000, 20000], [10, "麦田", 7100000, 20000], [11, "麦田", 14000000, 25000], [12, "麦田", 27000000, 31000], [13, "麦田", 46000000, 38000], [14, "麦田", 78000000, 46000], [15, "麦田", 140000000, 55000], [16, "麦田", 260000000, 65000], [17, "麦田", 410000000, 76000], [18, "麦田", 690000000, 88000], [19, "麦田", 1200000000, 101000], [20, "麦田", 1900000000, 115000], [21, "麦田", 3300000000, 130000], [22, "麦田", 5000000000, 146000], [23, "麦田", 7700000000, 163000], [24, "麦田", 17000000000, 181000], [25, "麦田", 26000000000, 200000], [26, "麦田", 42000000000, 220000], [27, "麦田", 66000000000, 241000], [28, "麦田", 96000000000, 263000], [29, "麦田", 140000000000, 286000], [30, "麦田", "", 286000], [1, "厨房", 3, 3600], [2, "厨房", 34, 3600], [3, "厨房", 960, 3600], [4, "厨房", 13000, 3600], [5, "厨房", 62000, 7000], [6, "厨房", 210000, 10000], [7, "厨房", 670000, 13000], [8, "厨房", 1400000, 16000], [9, "厨房", 2800000, 20000], [10, "厨房", 7100000, 20000], [11, "厨房", 14000000, 25000], [12, "厨房", 27000000, 31000], [13, "厨房", 46000000, 38000], [14, "厨房", 78000000, 46000], [15, "厨房", 140000000, 55000], [16, "厨房", 260000000, 65000], [17, "厨房", 410000000, 76000], [18, "厨房", 690000000, 88000], [19, "厨房", 1200000000, 101000], [20, "厨房", 1900000000, 115000], [21, "厨房", 3300000000, 130000], [22, "厨房", 5000000000, 146000], [23, "厨房", 7700000000, 163000], [24, "厨房", 17000000000, 181000], [25, "厨房", 26000000000, 200000], [26, "厨房", 42000000000, 220000], [27, "厨房", 66000000000, 241000], [28, "厨房", 96000000000, 263000], [29, "厨房", 140000000000, 286000], [30, "厨房", "", 286000], [1, "采矿场", 3, 3600], [2, "采矿场", 34, 3600], [3, "采矿场", 960, 3600], [4, "采矿场", 13000, 3600], [5, "采矿场", 62000, 7000], [6, "采矿场", 210000, 10000], [7, "采矿场", 670000, 13000], [8, "采矿场", 1400000, 16000], [9, "采矿场", 2800000, 20000], [10, "采矿场", 7100000, 20000], [11, "采矿场", 14000000, 25000], [12, "采矿场", 27000000, 31000], [13, "采矿场", 46000000, 38000], [14, "采矿场", 78000000, 46000], [15, "采矿场", 140000000, 55000], [16, "采矿场", 260000000, 65000], [17, "采矿场", 410000000, 76000], [18, "采矿场", 690000000, 88000], [19, "采矿场", 1200000000, 101000], [20, "采矿场", 1900000000, 115000], [21, "采矿场", 3300000000, 130000], [22, "采矿场", 5000000000, 146000], [23, "采矿场", 7700000000, 163000], [24, "采矿场", 17000000000, 181000], [25, "采矿场", 26000000000, 200000], [26, "采矿场", 42000000000, 220000], [27, "采矿场", 66000000000, 241000], [28, "采矿场", 96000000000, 263000], [29, "采矿场", 140000000000, 286000], [30, "采矿场", "", 286000], [1, "木头仓库", 14, 3600], [2, "木头仓库", 150, 3600], [3, "木头仓库", 4300, 3600], [4, "木头仓库", 58000, 3600], [5, "木头仓库", 280000, 7000], [6, "木头仓库", 940000, 10000], [7, "木头仓库", 3000000, 13000], [8, "木头仓库", 6100000, 16000], [9, "木头仓库", 13000000, 20000], [10, "木头仓库", 32000000, 20000], [11, "木头仓库", 61000000, 25000], [12, "木头仓库", 120000000, 31000], [13, "木头仓库", 210000000, 38000], [14, "木头仓库", 350000000, 46000], [15, "木头仓库", 650000000, 55000], [16, "木头仓库", 1200000000, 65000], [17, "木头仓库", 1800000000, 76000], [18, "木头仓库", 3100000000, 88000], [19, "木头仓库", 5400000000, 101000], [20, "木头仓库", 8600000000, 115000], [21, "木头仓库", 15000000000, 130000], [22, "木头仓库", 22000000000, 146000], [23, "木头仓库", 35000000000, 163000], [24, "木头仓库", 76000000000, 181000], [25, "木头仓库", 120000000000, 200000], [26, "木头仓库", 190000000000, 220000], [27, "木头仓库", 300000000000, 241000], [28, "木头仓库", 430000000000, 263000], [29, "木头仓库", 650000000000, 286000], [30, "木头仓库", "", 286000], [1, "石头仓库", 14, 3600], [2, "石头仓库", 150, 3600], [3, "石头仓库", 4300, 3600], [4, "石头仓库", 58000, 3600], [5, "石头仓库", 280000, 7000], [6, "石头仓库", 940000, 10000], [7, "石头仓库", 3000000, 13000], [8, "石头仓库", 6100000, 16000], [9, "石头仓库", 13000000, 20000], [10, "石头仓库", 32000000, 20000], [11, "石头仓库", 61000000, 25000], [12, "石头仓库", 120000000, 31000], [13, "石头仓库", 210000000, 38000], [14, "石头仓库", 350000000, 46000], [15, "石头仓库", 650000000, 55000], [16, "石头仓库", 1200000000, 65000], [17, "石头仓库", 1800000000, 76000], [18, "石头仓库", 3100000000, 88000], [19, "石头仓库", 5400000000, 101000], [20, "石头仓库", 8600000000, 115000], [21, "石头仓库", 15000000000, 130000], [22, "石头仓库", 22000000000, 146000], [23, "石头仓库", 35000000000, 163000], [24, "石头仓库", 76000000000, 181000], [25, "石头仓库", 120000000000, 200000], [26, "石头仓库", 190000000000, 220000], [27, "石头仓库", 300000000000, 241000], [28, "石头仓库", 430000000000, 263000], [29, "石头仓库", 650000000000, 286000], [30, "石头仓库", "", 286000], [1, "食物仓库", 14, 3600], [2, "食物仓库", 150, 3600], [3, "食物仓库", 4300, 3600], [4, "食物仓库", 58000, 3600], [5, "食物仓库", 280000, 7000], [6, "食物仓库", 940000, 10000], [7, "食物仓库", 3000000, 13000], [8, "食物仓库", 6100000, 16000], [9, "食物仓库", 13000000, 20000], [10, "食物仓库", 32000000, 20000], [11, "食物仓库", 61000000, 25000], [12, "食物仓库", 120000000, 31000], [13, "食物仓库", 210000000, 38000], [14, "食物仓库", 350000000, 46000], [15, "食物仓库", 650000000, 55000], [16, "食物仓库", 1200000000, 65000], [17, "食物仓库", 1800000000, 76000], [18, "食物仓库", 3100000000, 88000], [19, "食物仓库", 5400000000, 101000], [20, "食物仓库", 8600000000, 115000], [21, "食物仓库", 15000000000, 130000], [22, "食物仓库", 22000000000, 146000], [23, "食物仓库", 35000000000, 163000], [24, "食物仓库", 76000000000, 181000], [25, "食物仓库", 120000000000, 200000], [26, "食物仓库", 190000000000, 220000], [27, "食物仓库", 300000000000, 241000], [28, "食物仓库", 430000000000, 263000], [29, "食物仓库", 650000000000, 286000], [30, "食物仓库", "", 286000], [1, "矿石仓库", 420, 3600], [2, "矿石仓库", 6600, 3600], [3, "矿石仓库", 320000, 3600], [4, "矿石仓库", 940000, 3600], [5, "矿石仓库", 2700000, 7000], [6, "矿石仓库", 6400000, 10000], [7, "矿石仓库", 16000000, 13000], [8, "矿石仓库", 27000000, 16000], [9, "矿石仓库", 52000000, 20000], [10, "矿石仓库", 120000000, 20000], [11, "矿石仓库", 180000000, 25000], [12, "矿石仓库", 300000000, 31000], [13, "矿石仓库", 400000000, 38000], [14, "矿石仓库", 540000000, 46000], [15, "矿石仓库", 790000000, 55000], [16, "矿石仓库", 1500000000, 65000], [17, "矿石仓库", 2200000000, 76000], [18, "矿石仓库", 3300000000, 88000], [19, "矿石仓库", 7900000000, 101000], [20, "矿石仓库", 14000000000, 115000], [21, "矿石仓库", 16000000000, 130000], [22, "矿石仓库", 22000000000, 146000], [23, "矿石仓库", 32000000000, 163000], [24, "矿石仓库", 66000000000, 181000], [25, "矿石仓库", 94000000000, 200000], [26, "矿石仓库", 150000000000, 220000], [27, "矿石仓库", 220000000000, 241000], [28, "矿石仓库", 310000000000, 263000], [29, "矿石仓库", 430000000000, 286000], [30, "矿石仓库", "", 286000], [1, "学院", 30, 3600], [2, "学院", 320, 3600], [3, "学院", 9000, 3600], [4, "学院", 120000, 3600], [5, "学院", 580000, 7000], [6, "学院", 2000000, 10000], [7, "学院", 6300000, 13000], [8, "学院", 13000000, 16000], [9, "学院", 26000000, 20000], [10, "学院", 67000000, 20000], [11, "学院", 130000000, 25000], [12, "学院", 260000000, 31000], [13, "学院", 440000000, 38000], [14, "学院", 740000000, 46000], [15, "学院", 1400000000, 55000], [16, "学院", 2400000000, 65000], [17, "学院", 3800000000, 76000], [18, "学院", 6500000000, 88000], [19, "学院", 11000000000, 101000], [20, "学院", 18000000000, 115000], [21, "学院", 31000000000, 130000], [22, "学院", 47000000000, 146000], [23, "学院", 72000000000, 163000], [24, "学院", 160000000000, 181000], [25, "学院", 240000000000, 200000], [26, "学院", 400000000000, 220000], [27, "学院", 620000000000, 241000], [28, "学院", 900000000000, 263000], [29, "学院", 1400000000000, 286000], [30, "学院", "", 286000], [1, "民居", 0, 3600], [2, "民居", 14, 3600], [3, "民居", 500, 3600], [4, "民居", 1000, 3600], [5, "民居", 10000, 7000], [6, "民居", 210000, 10000], [7, "民居", 670000, 13000], [8, "民居", 1400000, 16000], [9, "民居", 2800000, 20000], [10, "民居", 7100000, 20000], [11, "民居", 14000000, 25000], [12, "民居", 27000000, 31000], [13, "民居", 46000000, 38000], [14, "民居", 78000000, 46000], [15, "民居", 140000000, 55000], [16, "民居", 260000000, 65000], [17, "民居", 410000000, 76000], [18, "民居", 690000000, 88000], [19, "民居", 1200000000, 101000], [20, "民居", 1900000000, 115000], [21, "民居", 3300000000, 130000], [22, "民居", 5000000000, 146000], [23, "民居", 7700000000, 163000], [24, "民居", 17000000000, 181000], [25, "民居", 26000000000, 200000], [26, "民居", 42000000000, 220000], [27, "民居", 66000000000, 241000], [28, "民居", 96000000000, 263000], [29, "民居", 140000000000, 286000], [30, "民居", "", 286000], [1, "市政厅", 1, 3600], [2, "市政厅", 14, 3600], [3, "市政厅", 1000, 3600], [4, "市政厅", 2000, 3600], [5, "市政厅", 50000, 7000], [6, "市政厅", 2600000, 10000], [7, "市政厅", 8400000, 13000], [8, "市政厅", 17000000, 16000], [9, "市政厅", 35000000, 20000], [10, "市政厅", 89000000, 20000], [11, "市政厅", 170000000, 25000], [12, "市政厅", 340000000, 31000], [13, "市政厅", 580000000, 38000], [14, "市政厅", 980000000, 46000], [15, "市政厅", 1800000000, 55000], [16, "市政厅", 3200000000, 65000], [17, "市政厅", 5100000000, 76000], [18, "市政厅", 8600000000, 88000], [19, "市政厅", 15000000000, 101000], [20, "市政厅", 24000000000, 115000], [21, "市政厅", 41000000000, 130000], [22, "市政厅", 62000000000, 146000], [23, "市政厅", 96000000000, 163000], [24, "市政厅", 210000000000, 181000], [25, "市政厅", 320000000000, 200000], [26, "市政厅", 530000000000, 220000], [27, "市政厅", 820000000000, 241000], [28, "市政厅", 1200000000000, 263000], [29, "市政厅", 1800000000000, 286000], [30, "市政厅", "", 286000], [1, "兵营", 20, 3600], [2, "兵营", 220, 3600], [3, "兵营", 6000, 3600], [4, "兵营", 80000, 3600], [5, "兵营", 390000, 7000], [6, "兵营", 1300000, 10000], [7, "兵营", 4200000, 13000], [8, "兵营", 8500000, 16000], [9, "兵营", 18000000, 20000], [10, "兵营", 45000000, 20000], [11, "兵营", 85000000, 25000], [12, "兵营", 170000000, 31000], [13, "兵营", 290000000, 38000], [14, "兵营", 490000000, 46000], [15, "兵营", 900000000, 55000], [16, "兵营", 1600000000, 65000], [17, "兵营", 2600000000, 76000], [18, "兵营", 4300000000, 88000], [19, "兵营", 7500000000, 101000], [20, "兵营", 12000000000, 115000], [21, "兵营", 21000000000, 130000], [22, "兵营", 31000000000, 146000], [23, "兵营", 48000000000, 163000], [24, "兵营", 110000000000, 181000], [25, "兵营", 160000000000, 200000], [26, "兵营", 270000000000, 220000], [27, "兵营", 410000000000, 241000], [28, "兵营", 600000000000, 263000], [29, "兵营", 900000000000, 286000], [30, "兵营", "", 286000], [1, "校场", 10, 3600], [2, "校场", 130, 3600], [3, "校场", 3600, 3600], [4, "校场", 48000, 3600], [5, "校场", 230000, 7000], [6, "校场", 780000, 10000], [7, "校场", 2500000, 13000], [8, "校场", 5100000, 16000], [9, "校场", 11000000, 20000], [10, "校场", 27000000, 20000], [11, "校场", 51000000, 25000], [12, "校场", 100000000, 31000], [13, "校场", 170000000, 38000], [14, "校场", 290000000, 46000], [15, "校场", 540000000, 55000], [16, "校场", 960000000, 65000], [17, "校场", 1500000000, 76000], [18, "校场", 2600000000, 88000], [19, "校场", 4500000000, 101000], [20, "校场", 7200000000, 115000], [21, "校场", 12000000000, 130000], [22, "校场", 19000000000, 146000], [23, "校场", 29000000000, 163000], [24, "校场", 63000000000, 181000], [25, "校场", 96000000000, 200000], [26, "校场", 160000000000, 220000], [27, "校场", 250000000000, 241000], [28, "校场", 360000000000, 263000], [29, "校场", 540000000000, 286000], [30, "校场", "", 286000], [1, "招待台", 0, 3600], [1, "民居", 1, 3600], [2, "民居", 14, 3600], [3, "民居", 500, 3600], [4, "民居", 1000, 3600], [5, "民居", 10000, 7000], [6, "民居", 210000, 10000], [7, "民居", 670000, 13000], [8, "民居", 1400000, 16000], [9, "民居", 2800000, 20000], [10, "民居", 7100000, 20000], [11, "民居", 14000000, 25000], [12, "民居", 27000000, 31000], [13, "民居", 46000000, 38000], [14, "民居", 78000000, 46000], [15, "民居", 140000000, 55000], [16, "民居", 260000000, 65000], [17, "民居", 410000000, 76000], [18, "民居", 690000000, 88000], [19, "民居", 1200000000, 101000], [20, "民居", 1900000000, 115000], [21, "民居", 3300000000, 130000], [22, "民居", 5000000000, 146000], [23, "民居", 7700000000, 163000], [24, "民居", 17000000000, 181000], [25, "民居", 26000000000, 200000], [26, "民居", 42000000000, 220000], [27, "民居", 66000000000, 241000], [28, "民居", 96000000000, 263000], [29, "民居", 140000000000, 286000], [30, "民居", "", 286000]];
+
+function initStdPopTab() {
+  // Check localStorage for cached imported data
+  const cached = localStorage.getItem('stdpop_data');
+  if (cached) {
+    try {
+      stdPopData = JSON.parse(cached);
+      document.getElementById('stdpopNameFilter').style.display = 'none';
+      document.getElementById('stdpopLvlFilter').style.display = 'none';
+    } catch(e) { stdPopData = STDPOP_DEFAULT; }
+  } else if (stdPopData.length === 0) {
+    stdPopData = STDPOP_DEFAULT;
+  }
+  updateStdPopNameFilter();
+  renderStdPopTable();
+  setupStdPopDropzone();
+}
+
+function setupStdPopDropzone() {
+  const dz = document.getElementById('stdpopDropzone');
+  const fi = document.getElementById('stdpopFileInput');
+  if (!dz || !fi) return;
+  
+  dz.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) parseStdPopXlsx(e.target.files[0]);
+  });
+  
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) parseStdPopXlsx(file);
+  });
+}
+
+function parseStdPopXlsx(file) {
+  if (!file.name.match(/\.xlsx?$/i)) {
+    showToast('请拖入 .xlsx 文件');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheetName = wb.SheetNames.find(n => n === 'BuildingLevelConfig');
+      if (!sheetName) {
+        showToast('未找到子表 BuildingLevelConfig，可用子表: ' + wb.SheetNames.join(', '));
+        return;
+      }
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      // Find header row - look for 'level' column
+      let headerIdx = -1;
+      for (let i = 0; i < Math.min(10, rows.length); i++) {
+        const r = rows[i];
+        if (r && r.some(c => String(c).toLowerCase() === 'level')) {
+          headerIdx = i;
+          break;
+        }
+      }
+      if (headerIdx < 0) {
+        showToast('未找到 level 列');
+        return;
+      }
+      const headers = rows[headerIdx].map(h => String(h).toLowerCase().trim());
+      const idxLevel = headers.indexOf('level');
+      const idxName = headers.indexOf('name');
+      const idxWL = headers.indexOf('upgrade_workload');
+      const idxSP = headers.indexOf('standard_population');
+      
+      if (idxLevel < 0 || idxName < 0) {
+        showToast('缺少必要列: level / name');
+        return;
+      }
+      
+      stdPopData = [];
+      for (let i = headerIdx + 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length === 0 || r[idxLevel] === '' || r[idxLevel] === null || r[idxLevel] === undefined) continue;
+        const wl = r[idxWL] !== '' && r[idxWL] !== null ? (parseInt(r[idxWL]) || 0) : '';
+        if (wl === 0 || wl === '') continue; // 过滤 upgrade_workload 为 0 的数据
+        stdPopData.push([
+          parseInt(r[idxLevel]) || 0,
+          String(r[idxName] || ''),
+          wl,
+          r[idxSP] !== '' && r[idxSP] !== null ? (parseInt(r[idxSP]) || 0) : ''
+        ]);
+      }
+      updateStdPopNameFilter();
+      renderStdPopTable();
+      // Save to localStorage for persistence
+      localStorage.setItem('stdpop_data', JSON.stringify(stdPopData));
+      document.getElementById('stdpopNameFilter').style.display = 'none';
+      document.getElementById('stdpopLvlFilter').style.display = 'none';
+      showToast('已导入 BuildingConfig.xlsx: ' + stdPopData.length + ' 条记录');
+    } catch(err) {
+      showToast('解析失败: ' + err.message);
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function updateStdPopNameFilter() {
+  const names = [...new Set(stdPopData.map(r => r[1]).filter(Boolean))].sort();
+  const sel = document.getElementById('stdpopNameFilter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">全部建筑</option>' + names.map(n => '<option value="' + n + '">' + n + '</option>').join('');
+  
+  const levels = [...new Set(stdPopData.map(r => r[0]).filter(Boolean))].sort((a,b) => a-b);
+  const lvlSel = document.getElementById('stdpopLvlFilter');
+  if (lvlSel) {
+    lvlSel.innerHTML = '<option value="">全部等级</option>' + levels.map(l => '<option value="' + l + '">' + l + '级</option>').join('');
+  }
+}
+
+function filterStdPop() {
+  renderStdPopTable();
+}
+
+function renderStdPopTable() {
+  const search = (document.getElementById('stdpopSearch')?.value || '').toLowerCase().trim();
+  const nameFilter = document.getElementById('stdpopNameFilter')?.value || '';
+  const lvlFilter = document.getElementById('stdpopLvlFilter')?.value || '';
+  
+  let filtered = stdPopData;
+  if (nameFilter) filtered = filtered.filter(r => r[1] === nameFilter);
+  if (lvlFilter) filtered = filtered.filter(r => String(r[0]) === lvlFilter);
+  if (search) {
+    filtered = filtered.filter(r => 
+      String(r[1]).toLowerCase().includes(search) || String(r[0]).includes(search)
+    );
+  }
+  
+  const tbody = document.querySelector('#stdpopTable tbody');
+  if (!tbody) return;
+  
+  let html = '';
+  filtered.forEach(r => {
+    const wl = r[2] === '' ? '' : Number(r[2]).toLocaleString();
+    const sp = r[3] === '' ? '' : Number(r[3]).toLocaleString();
+    html += '<tr>' +
+      '<td class="col-lvl">' + r[0] + '</td>' +
+      '<td class="col-name">' + r[1] + '</td>' +
+      '<td class="col-wl num">' + wl + '</td>' +
+      '<td class="col-sp num">' + sp + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = html;
+  
+  document.getElementById('stdpopStats').textContent = 
+    '显示 ' + filtered.length + ' / ' + stdPopData.length + ' 条';
+}
+
+function resetStdPop() {
+  localStorage.removeItem('stdpop_data');
+  stdPopData = STDPOP_DEFAULT;
+  document.getElementById('stdpopNameFilter').style.display = '';
+  document.getElementById('stdpopLvlFilter').style.display = '';
+  updateStdPopNameFilter();
+  renderStdPopTable();
+  showToast('已恢复默认数据');
+}
+
+// ==================== Init ====================
+initAttrRefTable();
+updateCurrentTime();
+setInterval(updateCurrentTime, 1000);
+loadScenario(0);
+</script>
+</body>
+</html>

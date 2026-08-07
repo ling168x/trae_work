@@ -60,3 +60,4 @@ UI_Scan_Results/
 model_dsds/kline_cache/
 model_dsds/__pycache__/
 model_dsds/*.html
+wechat_msg_reader/binary_keys.txt
