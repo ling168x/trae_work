@@ -287,6 +287,7 @@ select {
   flex: 1;
   width: 100%;
   min-height: 450px;
+  max-height: calc(100vh - 300px);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 14px;
@@ -941,6 +942,10 @@ select {
         <span class="result-value" id="timestampResultValue"></span>
         <button class="btn btn-success btn-sm" onclick="copyText('timestampResultValue')">复制</button>
       </div>
+      <div class="result-box" id="timestampResultCompact" style="display:none;">
+        <span class="result-value" id="timestampResultCompactValue"></span>
+        <button class="btn btn-success btn-sm" onclick="copyText('timestampResultCompactValue')">复制</button>
+      </div>
     </div>
 
     <div class="card">
@@ -992,6 +997,7 @@ select {
         <button class="btn btn-success" onclick="copyJson()">复制结果</button>
         <button class="btn btn-danger" onclick="clearJson()">清空</button>
         <button class="btn btn-outline" onclick="loadSample()">示例</button>
+        <button class="btn btn-outline" onclick="smartRepairAndApply()" style="color:var(--purple);border-color:var(--purple);">智能修复</button>
       </div>
       <div class="json-container">
         <div class="json-panel">
@@ -1240,6 +1246,7 @@ select {
 <script>
 // ==================== Global State ====================
 let currentJsonObj = null;
+let jsonDebounceTimer = null;
 
 // Attribute reference table (from Attr.xlsx: displayname=1→数值, displayname=2→万分比)
 const ATTR_MAP = {
@@ -1461,6 +1468,16 @@ function formatDate(date) {
   return y + '-' + m + '-' + d + ' ' + h + ':' + min + ':' + s;
 }
 
+function formatDateCompact(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return y + m + d + h + min + s;
+}
+
 function convertTimestamp() {
   const input = document.getElementById('timestampInput').value.trim();
   const unit = document.getElementById('timestampUnit').value;
@@ -1475,6 +1492,8 @@ function convertTimestamp() {
   if (isNaN(date.getTime())) { showToast('无效的时间戳'); return; }
   document.getElementById('timestampResultValue').textContent = formatDate(date);
   document.getElementById('timestampResult').style.display = 'flex';
+  document.getElementById('timestampResultCompactValue').textContent = formatDateCompact(date);
+  document.getElementById('timestampResultCompact').style.display = 'flex';
 }
 
 function fillCurrentTimestamp() {
@@ -1647,17 +1666,196 @@ function analyzeJsonError(input, errorMsg) {
   return { suggestions, contextInfo, fixedJson };
 }
 
-function formatJson() {
-  const input = document.getElementById('jsonInput').value.trim();
+// 智能修复：尝试多种策略修复有问题的 JSON
+function smartRepairJson(input) {
+  let repaired = input;
+  let appliedFixes = [];
+
+  // 策略1: 移除注释 (// 和 /* */)
+  let noComments = repaired
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+  if (noComments !== repaired) {
+    appliedFixes.push('移除了注释');
+    repaired = noComments;
+  }
+
+  // 策略2: 替换单引号为双引号
+  // 使用状态机精确替换字符串边界上的单引号，避免替换字符串内部的单引号
+  let quoteFixed = '';
+  let inDblQuote = false, inSglQuote = false, escaped = false;
+  for (let i = 0; i < repaired.length; i++) {
+    const ch = repaired[i];
+    if (escaped) {
+      quoteFixed += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\') {
+      quoteFixed += ch;
+      escaped = true;
+      continue;
+    }
+    if (ch === '"' && !inSglQuote) {
+      inDblQuote = !inDblQuote;
+      quoteFixed += ch;
+    } else if (ch === "'" && !inDblQuote) {
+      inSglQuote = !inSglQuote;
+      quoteFixed += '"';  // 替换为双引号
+    } else {
+      quoteFixed += ch;
+    }
+  }
+  if (quoteFixed !== repaired) {
+    appliedFixes.push('替换了单引号为双引号');
+    repaired = quoteFixed;
+  }
+
+  // 策略3: 为未加引号的 key 添加双引号
+  // 匹配 {, 或 [ 后面的 key: 模式（key 由字母、数字、下划线、$ 组成）
+  let keyFixed = repaired.replace(/([\{,\[]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
+  if (keyFixed !== repaired) {
+    appliedFixes.push('为未加引号的 key 添加了双引号');
+    repaired = keyFixed;
+  }
+
+  // 策略4: 移除尾部多余逗号
+  let noTrailing = repaired.replace(/,\s*([\}\]])/g, '$1');
+  if (noTrailing !== repaired) {
+    appliedFixes.push('移除了尾部多余的逗号');
+    repaired = noTrailing;
+  }
+
+  // 策略5: 修复缺失的逗号（在值之间）
+  // 常见的缺失逗号场景：}{  }"  ]"  ]["  }[  ][  "{"  "[" 数字{ 数字[
+  let commaFixed = repaired
+    .replace(/([}\]])\s*\n?\s*([\{])/g, '$1,$2')       // }{ -> },{
+    .replace(/([}\]])\s*\n?\s*(\[)/g, '$1,$2')         // }[ -> },[
+    .replace(/(["'])\s*\n?\s*(["'])/g, '$1,$2')         // " " -> ", "
+    .replace(/([}\]])\s*\n?\s*(["'])/g, '$1,$2')       // }" -> },"
+    .replace(/(["'])\s*\n?\s*([\{])/g, '$1,$2')         // "{ -> ",{
+    .replace(/([0-9])\s*\n?\s*(["'])/g, '$1,$2')        // 1" -> 1,"
+    .replace(/([0-9])\s*\n?\s*([\{])/g, '$1,$2')        // 1{ -> 1,{
+    .replace(/([}\]])\s*\n?\s*([0-9-])/g, '$1,$2')      // }1 -> },1
+    .replace(/(["'])\s*\n?\s*([0-9-])/g, '$1,$2')       // "1 -> ",1
+    .replace(/([0-9])\s*\n?\s*(\[)/g, '$1,$2')           // 1[ -> 1,[
+    .replace(/([}\]])\s*\n?\s*(true|false|null)/g, '$1,$2')  // }true -> },true
+    .replace(/(true|false|null)\s*\n?\s*(["'\{])/g, '$1,$2'); // true" -> true,"
+  if (commaFixed !== repaired) {
+    appliedFixes.push('尝试修复了缺失的逗号');
+    repaired = commaFixed;
+  }
+
+  // 策略6: 自动补全缺失的括号
+  try {
+    let stack = [];
+    let inString = false;
+    let esc = false;
+    for (let i = 0; i < repaired.length; i++) {
+      const ch = repaired[i];
+      if (esc) { esc = false; continue; }
+      if (ch === '\\') { esc = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === '{') stack.push('}');
+      else if (ch === '[') stack.push(']');
+      else if (ch === '}' || ch === ']') {
+        if (stack.length > 0 && stack[stack.length - 1] === ch) stack.pop();
+      }
+    }
+    if (stack.length > 0) {
+      const suffix = stack.reverse().join('');
+      repaired += suffix;
+      appliedFixes.push('补充了缺失的 ' + suffix);
+    }
+  } catch(e) {}
+
+  // 最终尝试解析
+  try {
+    const obj = JSON.parse(repaired);
+    return { success: true, json: repaired, obj: obj, fixes: appliedFixes };
+  } catch(e) {
+    return { success: false, fixes: appliedFixes, error: e.message };
+  }
+}
+
+// 按钮：智能修复并应用到输入框
+function smartRepairAndApply() {
+  const input = document.getElementById('jsonInput').value;
   const statusBar = document.getElementById('jsonStatus');
-  if (!input) { showToast('请输入 JSON 数据'); return; }
+  if (!input.trim()) { showToast('请输入 JSON 数据'); return; }
+
+  // 先直接尝试解析
+  try {
+    JSON.parse(input);
+    showToast('JSON 格式已经正确，无需修复');
+    return;
+  } catch(e) {}
+
+  const result = smartRepairJson(input);
+  if (result.success) {
+    document.getElementById('jsonInput').value = JSON.stringify(result.obj, null, 4);
+    currentJsonObj = result.obj;
+    renderTree(result.obj);
+    statusBar.className = 'status-bar success';
+    statusBar.innerHTML = '智能修复成功！修复操作：' + result.fixes.join('；') +
+      '<br><button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="undoSmartRepair()">撤销修复</button>';
+    // 保存原始输入用于撤销
+    window._lastJsonInput = input;
+    showToast('已智能修复 JSON 格式');
+  } else {
+    let msg = '智能修复失败：' + escapeHtml(result.error);
+    if (result.fixes.length > 0) {
+      msg += '<br>已尝试的修复：' + result.fixes.join('；');
+    }
+    statusBar.className = 'status-bar error';
+    statusBar.innerHTML = msg;
+    showToast('无法自动修复此 JSON');
+  }
+}
+
+function undoSmartRepair() {
+  if (window._lastJsonInput !== undefined) {
+    document.getElementById('jsonInput').value = window._lastJsonInput;
+    window._lastJsonInput = undefined;
+    autoValidateJson();
+    showToast('已撤销修复');
+  }
+}
+
+// 核心：实时验证 JSON 并刷新右侧输出
+function autoValidateJson() {
+  const input = document.getElementById('jsonInput').value;
+  const statusBar = document.getElementById('jsonStatus');
+
+  if (!input.trim()) {
+    document.getElementById('jsonOutput').innerHTML = '<span class="json-placeholder">格式化结果将显示在这里...</span>';
+    statusBar.className = 'status-bar';
+    currentJsonObj = null;
+    return;
+  }
+
   try {
     const obj = JSON.parse(input);
     currentJsonObj = obj;
     renderTree(obj);
     statusBar.className = 'status-bar success';
-    statusBar.textContent = 'JSON 格式正确，已格式化';
+    statusBar.textContent = 'JSON 格式正确';
   } catch (e) {
+    // 先尝试智能修复
+    const repairResult = smartRepairJson(input);
+    if (repairResult.success) {
+      currentJsonObj = repairResult.obj;
+      renderTree(repairResult.obj);
+      statusBar.className = 'status-bar success';
+      statusBar.innerHTML = 'JSON 已自动修复并显示。修复操作：' + repairResult.fixes.join('；') +
+        '<br><button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="applySmartRepair()">应用修复到输入框</button>';
+      // 暂存修复结果供 applySmartRepair 使用
+      window._smartRepairedJson = JSON.stringify(repairResult.obj, null, 4);
+      return;
+    }
+
+    // 智能修复也失败，使用原有分析
     const analysis = analyzeJsonError(input, e.message);
     if (analysis.fixedJson) {
       currentJsonObj = analysis.fixedJson;
@@ -1667,18 +1865,39 @@ function formatJson() {
       statusBar.className = 'status-bar success';
       statusBar.innerHTML = msg + '<br><button class="btn btn-outline btn-sm" style="margin-top:8px;" onclick="applyFix()">应用修复到输入框</button>';
     } else {
-      document.getElementById('jsonOutput').innerHTML = '';
+      document.getElementById('jsonOutput').innerHTML = '<span class="json-placeholder">格式错误，请检查输入...</span>';
       currentJsonObj = null;
-      let errorHtml = 'JSON 格式错误：' + e.message;
-      if (analysis.contextInfo) errorHtml += '<br><br><b>定位：</b>' + escapeHtml(analysis.contextInfo);
+      let errorHtml = 'JSON 格式错误：' + escapeHtml(e.message);
+      if (analysis.contextInfo) errorHtml += '<br><b>定位：</b>' + escapeHtml(analysis.contextInfo);
       if (analysis.suggestions.length > 0) {
-        errorHtml += '<br><br><b>修复建议：</b><br>';
-        analysis.suggestions.forEach((s, i) => { errorHtml += (i + 1) + '. ' + s + '<br>'; });
+        errorHtml += '<br><b>修复建议：</b><br>';
+        analysis.suggestions.forEach((s, i) => { errorHtml += (i + 1) + '. ' + escapeHtml(s) + '<br>'; });
+      }
+      // 如果智能修复尝试过但失败了，也显示提示
+      if (repairResult.fixes.length > 0) {
+        errorHtml += '<br><b>已尝试修复：</b>' + repairResult.fixes.join('；') + '（但仍无法解析）';
       }
       statusBar.className = 'status-bar error';
       statusBar.innerHTML = errorHtml;
     }
   }
+}
+
+function applySmartRepair() {
+  if (window._smartRepairedJson) {
+    document.getElementById('jsonInput').value = window._smartRepairedJson;
+    window._smartRepairedJson = undefined;
+    document.getElementById('jsonStatus').className = 'status-bar success';
+    document.getElementById('jsonStatus').textContent = '已将修复后的 JSON 应用到输入框';
+    showToast('已应用修复');
+  }
+}
+
+function formatJson() {
+  clearTimeout(jsonDebounceTimer);
+  const input = document.getElementById('jsonInput').value.trim();
+  if (!input) { showToast('请输入 JSON 数据'); return; }
+  autoValidateJson();
 }
 
 function applyFix() {
@@ -1725,9 +1944,13 @@ function loadSample() {
   showToast('已加载示例数据');
 }
 
-document.getElementById('jsonInput').addEventListener('paste', function() { setTimeout(formatJson, 0); });
+// 实时输入监听：输入后 300ms 自动校验并刷新右侧输出
+document.getElementById('jsonInput').addEventListener('input', function() {
+  clearTimeout(jsonDebounceTimer);
+  jsonDebounceTimer = setTimeout(autoValidateJson, 300);
+});
 document.getElementById('jsonInput').addEventListener('keydown', function(e) {
-  if (e.ctrlKey && e.key === 'Enter') formatJson();
+  if (e.ctrlKey && e.key === 'Enter') { clearTimeout(jsonDebounceTimer); formatJson(); }
   if (e.key === 'Tab') {
     e.preventDefault();
     const start = this.selectionStart;
