@@ -900,8 +900,492 @@ select {
 .stdpop-table-wrap .col-sp {
   min-width: 140px;
 }
+
+/* Tab 7: DB Viewer */
+.db-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg);
+  margin-bottom: 16px;
+}
+.db-dropzone:hover, .db-dropzone.drag-over {
+  border-color: var(--primary);
+  background: #e8f0fe;
+}
+.db-dropzone .drop-icon { font-size: 32px; margin-bottom: 8px; }
+.db-dropzone .drop-text { font-size: 14px; color: var(--text-light); }
+.db-dropzone .drop-hint { font-size: 12px; color: #999; margin-top: 6px; }
+.db-loading {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-light);
+  font-size: 14px;
+}
+.db-loading .spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.db-layout {
+  display: flex;
+  gap: 16px;
+  min-height: 500px;
+}
+.db-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow-y: auto;
+  max-height: 600px;
+}
+.db-sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafb;
+}
+.db-sidebar-search {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.db-sidebar-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.db-sidebar-search input:focus {
+  border-color: var(--primary);
+}
+.db-table-list { overflow-y: auto; }
+.db-path-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.db-path-bar label {
+  font-size: 13px;
+  color: var(--text-light);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.db-path-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+  background: #fff;
+}
+.db-path-input:focus { border-color: var(--primary); }
+.db-path-saved {
+  font-size: 11px;
+  color: var(--success);
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.db-path-saved.show { opacity: 1; }
+.db-data-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.db-data-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.db-data-search:focus { border-color: var(--primary); }
+.db-pagesize-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+.db-pagesize-group select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+}
+.db-search-stats {
+  font-size: 12px;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+.db-table-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.db-table-item:hover { background: #f5f8ff; }
+.db-table-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.db-table-item .tbl-icon { font-size: 14px; opacity: 0.5; }
+.db-table-item .tbl-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+.db-main-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.db-table-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.db-table-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.db-table-count {
+  font-size: 13px;
+  color: var(--text-light);
+}
+.db-sql-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.db-sql-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.db-sql-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.1);
+}
+.db-data-wrap {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-height: 520px;
+}
+.db-data-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+.db-data-wrap th {
+  position: sticky;
+  top: 0;
+  background: #f8fafb;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-light);
+  z-index: 1;
+  white-space: nowrap;
+}
+.db-data-wrap td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-data-wrap tr:hover td { background: #f5f8ff; }
+.db-data-wrap td.null-val { color: #ccc; font-style: italic; }
+.db-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+.db-pagination .page-btns {
+  display: flex;
+  gap: 6px;
+}
+.db-file-info {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f8fafb;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.db-file-info span { color: var(--primary); font-weight: 500; }
+@media (max-width: 768px) {
+  .db-layout { flex-direction: column; }
+  .db-sidebar { width: 100%; max-height: 200px; }
+  .sj-layout { flex-direction: column; }
+  .sj-sidebar { width: 100%; max-height: 200px; }
+}
+
+/* Tab 8: Server JSON */
+.sj-path-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #f8fafb;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
+}
+.sj-path-bar label {
+  font-size: 13px;
+  color: var(--text-light);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.sj-path-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  outline: none;
+  background: #fff;
+}
+.sj-path-input:focus { border-color: var(--primary); }
+.sj-path-saved {
+  font-size: 11px;
+  color: var(--success);
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.sj-path-saved.show { opacity: 1; }
+.sj-layout {
+  display: flex;
+  gap: 16px;
+  min-height: 500px;
+}
+.sj-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow-y: auto;
+  max-height: 620px;
+  display: flex;
+  flex-direction: column;
+}
+.sj-sidebar-search {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sj-sidebar-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+}
+.sj-sidebar-search input:focus { border-color: var(--primary); }
+.sj-file-list { overflow-y: auto; flex: 1; }
+.sj-file-item {
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Consolas', monospace;
+}
+.sj-file-item:hover { background: #f5f8ff; }
+.sj-file-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+.sj-file-item .sj-icon { font-size: 13px; opacity: 0.5; flex-shrink: 0; }
+.sj-file-item .sj-size {
+  margin-left: auto;
+  font-size: 10px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.sj-main-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sj-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.sj-file-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: 'Consolas', monospace;
+}
+.sj-file-meta {
+  font-size: 12px;
+  color: var(--text-light);
+}
+.sj-data-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.sj-data-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+.sj-data-search:focus { border-color: var(--primary); }
+.sj-data-wrap {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-height: 520px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  line-height: 1.8;
+  padding: 14px;
+  background: #fff;
+}
+.sj-data-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sj-data-wrap th {
+  position: sticky;
+  top: 0;
+  background: #f8fafb;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-light);
+  z-index: 1;
+  white-space: nowrap;
+}
+.sj-data-wrap td {
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sj-data-wrap tr:hover td { background: #f5f8ff; }
+.sj-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+.sj-pagination .page-btns { display: flex; gap: 6px; }
+.sj-folder-stats {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f8fafb;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.sj-folder-stats span { color: var(--primary); font-weight: 500; }
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
 </head>
 <body>
 <div class="container">
@@ -916,6 +1400,8 @@ select {
     <div class="tab" data-tab="work">工作计算</div>
     <div class="tab" data-tab="damage">伤害计算</div>
     <div class="tab" data-tab="stdpop">标准人口</div>
+    <div class="tab" data-tab="dbviewer">数据库查看</div>
+    <div class="tab" data-tab="sjson">服务端JSON</div>
   </div>
 
   <!-- ==================== Tab 1: Timestamp Tool ==================== -->
@@ -1204,6 +1690,126 @@ select {
                 <thead><tr><th>场景</th><th>攻击</th><th>防御</th><th>普攻伤害</th><th>技能伤害</th><th>暴击伤害</th><th>模式</th></tr></thead>
                 <tbody></tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 7: DB Viewer ==================== -->
+  <div class="tab-content" id="tab-dbviewer">
+    <div class="card">
+      <div class="card-title">数据库查看器 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 拖拽 .db / .sqlite / .sqlite3 文件读取数据</span></div>
+      <div class="db-path-bar">
+        <label>文件路径：</label>
+        <input type="text" class="db-path-input" id="dbPathInput" placeholder="输入或选择数据库文件路径，如 C:\data\game.db">
+        <button class="btn btn-primary btn-sm" onclick="saveDbPath()">保存</button>
+        <button class="btn btn-success btn-sm" onclick="refreshDbFromPath()" title="从保存的路径重新加载数据库">🔄 刷新数据</button>
+        <span class="db-path-saved" id="dbPathSaved">已保存</span>
+      </div>
+      <div class="db-dropzone" id="dbDropzone">
+        <div class="drop-icon">🗄️</div>
+        <div class="drop-text">拖拽数据库文件到此处</div>
+        <div class="drop-hint">支持 .db / .sqlite / .sqlite3 文件 | 或点击选择文件</div>
+        <input type="file" id="dbFileInput" accept=".db,.sqlite,.sqlite3" style="display:none">
+      </div>
+      <div id="dbLoading" class="db-loading" style="display:none;">
+        <span class="spinner"></span>正在加载数据库...
+      </div>
+      <div id="dbFileInfo" class="db-file-info" style="display:none;"></div>
+      <div id="dbContent" style="display:none;">
+        <div class="db-layout">
+          <div class="db-sidebar" id="dbSidebar">
+            <div class="db-sidebar-title">数据表列表</div>
+          </div>
+          <div class="db-main-panel">
+            <div class="db-table-info" id="dbTableInfo" style="display:none;">
+              <span class="db-table-name" id="dbTableName"></span>
+              <span class="db-table-count" id="dbTableCount"></span>
+            </div>
+            <div class="db-sql-bar">
+              <input type="text" class="db-sql-input" id="dbSqlInput" placeholder="输入自定义 SQL 查询语句，如: SELECT * FROM table_name WHERE ...">
+              <button class="btn btn-primary" onclick="execDbSql()">执行</button>
+              <button class="btn btn-outline" onclick="resetDbQuery()">重置</button>
+            </div>
+            <div class="db-data-toolbar" id="dbDataToolbar" style="display:none;">
+              <input type="text" class="db-data-search" id="dbDataSearch" placeholder="搜索表数据..." oninput="filterDbData()">
+              <div class="db-pagesize-group">
+                <span>每页</span>
+                <select id="dbPageSizeSelect" onchange="changeDbPageSize()">
+                  <option value="200" selected>200 条</option>
+                  <option value="500">500 条</option>
+                  <option value="0">全部</option>
+                </select>
+              </div>
+              <span class="db-search-stats" id="dbSearchStats"></span>
+            </div>
+            <div class="db-data-wrap" id="dbDataWrap">
+              <div style="padding:32px;text-align:center;color:var(--text-light);">选择左侧数据表查看数据</div>
+            </div>
+            <div class="db-pagination" id="dbPagination" style="display:none;">
+              <span id="dbPageInfo"></span>
+              <div class="page-btns">
+                <button class="btn btn-outline btn-sm" onclick="dbPagePrev()">上一页</button>
+                <button class="btn btn-outline btn-sm" onclick="dbPageNext()">下一页</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab 8: Server JSON ==================== -->
+  <div class="tab-content" id="tab-sjson">
+    <div class="card">
+      <div class="card-title">服务端JSON查看器 <span style="font-size:12px;color:var(--text-light);font-weight:400;">— 选择文件夹，读取所有 JSON 文件</span></div>
+      <div class="sj-path-bar">
+        <label>文件夹路径：</label>
+        <input type="text" class="sj-path-input" id="sjPathInput" placeholder="点击「选择文件夹」或「刷新」加载JSON文件" readonly>
+        <button class="btn btn-primary btn-sm" onclick="pickSjFolder()">选择文件夹</button>
+        <button class="btn btn-success btn-sm" onclick="refreshSjFolder()" title="从上次选择的文件夹重新加载">🔄 刷新数据</button>
+        <span class="sj-path-saved" id="sjPathSaved">已保存</span>
+      </div>
+      <div id="sjFolderStats" class="sj-folder-stats" style="display:none;"></div>
+      <div id="sjLoading" class="db-loading" style="display:none;">
+        <span class="spinner"></span>正在读取JSON文件...
+      </div>
+      <div id="sjContent" style="display:none;">
+        <div class="sj-layout">
+          <div class="sj-sidebar" id="sjSidebar">
+            <div class="sj-sidebar-search">
+              <input type="text" id="sjFileSearch" placeholder="搜索文件名..." oninput="filterSjFiles()">
+            </div>
+            <div class="sj-file-list" id="sjFileList"></div>
+          </div>
+          <div class="sj-main-panel">
+            <div class="sj-file-info" id="sjFileInfo" style="display:none;">
+              <span class="sj-file-name" id="sjFileName"></span>
+              <span class="sj-file-meta" id="sjFileMeta"></span>
+            </div>
+            <div class="sj-data-toolbar" id="sjDataToolbar" style="display:none;">
+              <input type="text" class="sj-data-search" id="sjDataSearch" placeholder="搜索数据内容..." oninput="filterSjData()">
+              <div class="db-pagesize-group">
+                <span>每页</span>
+                <select id="sjPageSizeSelect" onchange="changeSjPageSize()">
+                  <option value="200" selected>200 条</option>
+                  <option value="500">500 条</option>
+                  <option value="0">全部</option>
+                </select>
+              </div>
+              <span class="db-search-stats" id="sjSearchStats"></span>
+            </div>
+            <div class="sj-data-wrap" id="sjDataWrap">
+              <div style="padding:32px;text-align:center;color:var(--text-light);">选择左侧 JSON 文件查看数据</div>
+            </div>
+            <div class="sj-pagination" id="sjPagination" style="display:none;">
+              <span id="sjPageInfo"></span>
+              <div class="page-btns">
+                <button class="btn btn-outline btn-sm" onclick="sjPagePrev()">上一页</button>
+                <button class="btn btn-outline btn-sm" onclick="sjPageNext()">下一页</button>
+              </div>
             </div>
           </div>
         </div>
@@ -2691,6 +3297,918 @@ function resetStdPop() {
   renderStdPopTable();
   showToast('已恢复默认数据');
 }
+
+// ==================== Tab 7: DB Viewer ====================
+let dbInstance = null;
+let dbCurrentTable = '';
+let dbCurrentPage = 0;
+let DB_PAGE_SIZE = 200;
+let dbTotalRows = 0;
+let dbFilteredRows = null; // cached full result for client-side search
+let dbFilteredCols = null;
+let dbFileHandle = null; // File System Access API handle
+
+// --- IndexedDB helpers for persisting file handle ---
+function openDbHandleStore() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('toolbox_db_handle', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('handles');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function saveFileHandle(handle) {
+  return openDbHandleStore().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'dbFileHandle');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  });
+}
+
+function loadFileHandle() {
+  return openDbHandleStore().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('dbFileHandle');
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  });
+}
+
+// --- Path save / load ---
+function saveDbPath() {
+  const path = document.getElementById('dbPathInput').value.trim();
+  localStorage.setItem('db_viewer_path', path);
+  const saved = document.getElementById('dbPathSaved');
+  saved.classList.add('show');
+  setTimeout(() => saved.classList.remove('show'), 1500);
+  showToast('路径已保存');
+}
+
+function loadDbPathSetting() {
+  const saved = localStorage.getItem('db_viewer_path');
+  if (saved) {
+    document.getElementById('dbPathInput').value = saved;
+  }
+}
+
+// --- Refresh: re-read from stored handle or prompt file picker ---
+function refreshDbFromPath() {
+  // Try File System Access API handle first
+  if (dbFileHandle) {
+    readFromHandle(dbFileHandle);
+    return;
+  }
+  // Try loading from IndexedDB
+  loadFileHandle().then(handle => {
+    if (handle) {
+      dbFileHandle = handle;
+      readFromHandle(handle);
+    } else {
+      // Fallback: open file picker
+      showToast('无缓存的文件句柄，请重新选择文件');
+      triggerDbFilePicker();
+    }
+  }).catch(() => {
+    showToast('无缓存的文件句柄，请重新选择文件');
+    triggerDbFilePicker();
+  });
+}
+
+function readFromHandle(handle) {
+  handle.queryPermission({ mode: 'read' }).then(perm => {
+    if (perm === 'granted') return handle.getFile();
+    return handle.requestPermission({ mode: 'read' }).then(p => {
+      if (p === 'granted') return handle.getFile();
+      throw new Error('permission_denied');
+    });
+  }).then(file => {
+    // Update path display
+    document.getElementById('dbPathInput').value = file.name;
+    localStorage.setItem('db_viewer_path', file.name);
+    loadDbFile(file);
+    showToast('正在刷新数据...');
+  }).catch(err => {
+    if (err.message === 'permission_denied') {
+      showToast('文件访问被拒绝，请重新选择文件');
+    } else {
+      showToast('文件读取失败，请重新选择文件');
+    }
+    triggerDbFilePicker();
+  });
+}
+
+function triggerDbFilePicker() {
+  // Prefer File System Access API (stores handle for refresh)
+  if (window.showOpenFilePicker) {
+    window.showOpenFilePicker({
+      types: [{ description: 'SQLite 数据库', accept: { 'application/x-sqlite3': ['.db', '.sqlite', '.sqlite3'] } }],
+      multiple: false
+    }).then(([handle]) => {
+      dbFileHandle = handle;
+      saveFileHandle(handle).catch(() => {});
+      return handle.getFile();
+    }).then(file => {
+      document.getElementById('dbPathInput').value = file.name;
+      localStorage.setItem('db_viewer_path', file.name);
+      loadDbFile(file);
+    }).catch(err => {
+      if (err.name !== 'AbortError') showToast('选择文件失败');
+    });
+  } else {
+    document.getElementById('dbFileInput').click();
+  }
+}
+
+function setupDbDropzone() {
+  const dz = document.getElementById('dbDropzone');
+  const fi = document.getElementById('dbFileInput');
+  if (!dz || !fi) return;
+
+  dz.addEventListener('click', () => triggerDbFilePicker());
+  fi.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) loadDbFile(e.target.files[0]);
+  });
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    // Try to get file handle from DataTransferItem (for refresh support)
+    const items = e.dataTransfer.items;
+    if (items && items[0] && items[0].getAsFileSystemHandle) {
+      items[0].getAsFileSystemHandle().then(handle => {
+        if (handle && handle.kind === 'file') {
+          dbFileHandle = handle;
+          saveFileHandle(handle).catch(() => {});
+          handle.getFile().then(file => {
+            document.getElementById('dbPathInput').value = file.name;
+            localStorage.setItem('db_viewer_path', file.name);
+            loadDbFile(file, handle);
+          });
+        }
+      }).catch(() => {
+        const file = e.dataTransfer.files[0];
+        if (file) loadDbFile(file);
+      });
+    } else {
+      const file = e.dataTransfer.files[0];
+      if (file) loadDbFile(file);
+    }
+  });
+}
+
+function loadDbFile(file, fileHandle) {
+  const validExts = ['.db', '.sqlite', '.sqlite3'];
+  const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  if (!validExts.includes(ext)) {
+    showToast('请选择 .db / .sqlite / .sqlite3 文件');
+    return;
+  }
+
+  // Update path input and save
+  const pathInput = document.getElementById('dbPathInput');
+  if (pathInput && !pathInput.value) {
+    pathInput.value = file.name;
+    localStorage.setItem('db_viewer_path', file.name);
+  }
+
+  // Store file handle if provided (for refresh)
+  if (fileHandle) {
+    dbFileHandle = fileHandle;
+    saveFileHandle(fileHandle).catch(() => {});
+  }
+
+  document.getElementById('dbLoading').style.display = 'block';
+  document.getElementById('dbContent').style.display = 'none';
+  document.getElementById('dbFileInfo').style.display = 'none';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const getSql = window._SQL
+      ? Promise.resolve(window._SQL)
+      : window.initSqlJs({ locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/' + f });
+
+    getSql.then(SQL => {
+      window._SQL = SQL;
+      try {
+        const uint8 = new Uint8Array(e.target.result);
+        if (dbInstance) { try { dbInstance.close(); } catch(ex) {} }
+        dbInstance = new SQL.Database(uint8);
+
+        // Get tables
+        const tables = dbInstance.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+        if (!tables.length || !tables[0].values.length) {
+          showToast('数据库中没有找到数据表');
+          document.getElementById('dbLoading').style.display = 'none';
+          return;
+        }
+
+        const tableNames = tables[0].values.map(r => r[0]);
+        const fileSize = file.size < 1024 ? file.size + ' B'
+          : file.size < 1048576 ? (file.size / 1024).toFixed(1) + ' KB'
+          : (file.size / 1048576).toFixed(1) + ' MB';
+
+        document.getElementById('dbFileInfo').innerHTML =
+          '文件：<span>' + escapeHtml(file.name) + '</span> | 大小：<span>' + fileSize + '</span> | 数据表：<span>' + tableNames.length + ' 个</span>';
+        document.getElementById('dbFileInfo').style.display = 'flex';
+
+        // Render sidebar
+        const sidebar = document.getElementById('dbSidebar');
+        // Store table info globally for search filtering
+        window._dbTableList = [];
+        tableNames.forEach(name => {
+          let count = 0;
+          try {
+            const countResult = dbInstance.exec("SELECT COUNT(*) FROM \"" + name.replace(/"/g, '""') + "\"");
+            if (countResult.length) count = countResult[0].values[0][0];
+          } catch(ex) {}
+          window._dbTableList.push({ name, count });
+        });
+
+        let sidebarHtml = '<div class="db-sidebar-search"><input type="text" id="dbTableSearch" placeholder="搜索表名..." oninput="filterDbTables()"></div>';
+        sidebarHtml += '<div class="db-table-list" id="dbTableList"></div>';
+        sidebar.innerHTML = sidebarHtml;
+        filterDbTables();
+
+        document.getElementById('dbLoading').style.display = 'none';
+        document.getElementById('dbContent').style.display = 'block';
+
+        // Auto select first table
+        selectDbTable(tableNames[0]);
+        showToast('已加载数据库: ' + tableNames.length + ' 个表');
+      } catch(err) {
+        document.getElementById('dbLoading').style.display = 'none';
+        showToast('数据库读取失败: ' + err.message);
+        console.error(err);
+      }
+    }).catch(err => {
+      document.getElementById('dbLoading').style.display = 'none';
+      showToast('SQL.js 加载失败: ' + err.message);
+      console.error(err);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Fuzzy match: returns { match: true, score, highlighted } or { match: false }
+function fuzzyMatch(text, pattern) {
+  const lower = text.toLowerCase();
+  const ptn = pattern.toLowerCase();
+  let pi = 0, score = 0, lastIdx = -1;
+  const matchIdxs = [];
+  for (let i = 0; i < lower.length && pi < ptn.length; i++) {
+    if (lower[i] === ptn[pi]) {
+      matchIdxs.push(i);
+      // Bonus for consecutive matches or start-of-word
+      if (lastIdx === i - 1) score += 10;
+      else if (i === 0 || text[i - 1] === '_' || text[i - 1] === '-' || text[i - 1] === '.') score += 5;
+      score += 1;
+      lastIdx = i;
+      pi++;
+    }
+  }
+  if (pi < ptn.length) return { match: false };
+  // Build highlighted string
+  let highlighted = '';
+  let prev = 0;
+  matchIdxs.forEach(idx => {
+    highlighted += escapeHtml(text.substring(prev, idx));
+    highlighted += '<b style="color:var(--primary);">' + escapeHtml(text[idx]) + '</b>';
+    prev = idx + 1;
+  });
+  highlighted += escapeHtml(text.substring(prev));
+  return { match: true, score, highlighted };
+}
+
+function filterDbTables() {
+  const keyword = (document.getElementById('dbTableSearch')?.value || '').trim();
+  const list = window._dbTableList || [];
+  const container = document.getElementById('dbTableList');
+  if (!container) return;
+
+  let results;
+  if (!keyword) {
+    results = list.map(t => ({ ...t, highlighted: escapeHtml(t.name), score: 0 }));
+  } else {
+    results = [];
+    list.forEach(t => {
+      const fm = fuzzyMatch(t.name, keyword);
+      if (fm.match) results.push({ ...t, highlighted: fm.highlighted, score: fm.score });
+    });
+    // Sort by score descending (best match first)
+    results.sort((a, b) => b.score - a.score);
+  }
+
+  let html = '';
+  results.forEach(t => {
+    const active = t.name === dbCurrentTable ? ' active' : '';
+    html += '<div class="db-table-item' + active + '" onclick="selectDbTable(\'' + escapeHtml(t.name.replace(/'/g, "\\'")) + '\')">' +
+      '<span class="tbl-icon">📋</span>' +
+      '<span>' + t.highlighted + '</span>' +
+      '<span class="tbl-count">' + t.count + '</span>' +
+      '</div>';
+  });
+  if (results.length === 0) {
+    html = '<div style="padding:12px 14px;font-size:12px;color:#999;">未匹配到表</div>';
+  }
+  container.innerHTML = html;
+}
+
+function selectDbTable(name) {
+  if (!dbInstance) return;
+  dbCurrentTable = name;
+  dbCurrentPage = 0;
+  dbFilteredRows = null;
+  dbFilteredCols = null;
+
+  // Refresh sidebar highlighting
+  filterDbTables();
+
+  // Clear data search
+  const searchEl = document.getElementById('dbDataSearch');
+  if (searchEl) searchEl.value = '';
+  document.getElementById('dbSearchStats').textContent = '';
+
+  // Show data toolbar
+  document.getElementById('dbDataToolbar').style.display = 'flex';
+
+  // Update SQL input
+  document.getElementById('dbSqlInput').value = 'SELECT * FROM "' + name.replace(/"/g, '""') + '"';
+
+  // Get total rows
+  try {
+    const countResult = dbInstance.exec("SELECT COUNT(*) FROM \"" + name.replace(/"/g, '""') + "\"");
+    dbTotalRows = countResult.length ? countResult[0].values[0][0] : 0;
+  } catch(ex) { dbTotalRows = 0; }
+
+  document.getElementById('dbTableInfo').style.display = 'flex';
+  document.getElementById('dbTableName').textContent = name;
+  document.getElementById('dbTableCount').textContent = dbTotalRows + ' 行';
+
+  // Load all data for client-side search
+  loadDbTableData();
+}
+
+// Load all rows for current table (for client-side search)
+function loadDbTableData() {
+  if (!dbInstance || !dbCurrentTable) return;
+  try {
+    const sql = 'SELECT * FROM "' + dbCurrentTable.replace(/"/g, '""') + '"';
+    const result = dbInstance.exec(sql);
+    if (result.length && result[0].values.length) {
+      dbFilteredCols = result[0].columns;
+      dbFilteredRows = result[0].values;
+    } else {
+      dbFilteredCols = [];
+      dbFilteredRows = [];
+    }
+  } catch(ex) {
+    dbFilteredCols = [];
+    dbFilteredRows = [];
+  }
+  renderDbDataView();
+}
+
+// Filter data rows by search keyword (client-side)
+function filterDbData() {
+  dbCurrentPage = 0;
+  renderDbDataView();
+}
+
+// Change page size
+function changeDbPageSize() {
+  const val = parseInt(document.getElementById('dbPageSizeSelect').value);
+  DB_PAGE_SIZE = val; // 0 means show all
+  dbCurrentPage = 0;
+  renderDbDataView();
+}
+
+// Core: render current data with search + pagination
+function renderDbDataView() {
+  if (!dbFilteredRows || !dbFilteredCols) return;
+  const wrap = document.getElementById('dbDataWrap');
+  const keyword = (document.getElementById('dbDataSearch')?.value || '').toLowerCase().trim();
+
+  // Filter rows
+  let rows = dbFilteredRows;
+  if (keyword) {
+    rows = rows.filter(row =>
+      row.some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(keyword))
+    );
+  }
+
+  const totalFiltered = rows.length;
+  const statsEl = document.getElementById('dbSearchStats');
+  if (keyword) {
+    statsEl.textContent = '匹配 ' + totalFiltered + ' / ' + dbFilteredRows.length + ' 行';
+  } else {
+    statsEl.textContent = '';
+  }
+
+  if (totalFiltered === 0) {
+    wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-light);">' + (keyword ? '未搜索到匹配数据' : '无数据') + '</div>';
+    document.getElementById('dbPagination').style.display = 'none';
+    return;
+  }
+
+  // Pagination
+  const pageSize = DB_PAGE_SIZE > 0 ? DB_PAGE_SIZE : totalFiltered;
+  const totalPages = Math.ceil(totalFiltered / pageSize);
+  if (dbCurrentPage >= totalPages) dbCurrentPage = totalPages - 1;
+  if (dbCurrentPage < 0) dbCurrentPage = 0;
+  const startIdx = dbCurrentPage * pageSize;
+  const pageRows = rows.slice(startIdx, startIdx + pageSize);
+
+  // Render table
+  let html = '<table><thead><tr>';
+  html += '<th style="width:50px;text-align:center;">#</th>';
+  dbFilteredCols.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  pageRows.forEach((row, i) => {
+    html += '<tr>';
+    html += '<td style="text-align:center;color:#999;">' + (startIdx + i + 1) + '</td>';
+    row.forEach(val => {
+      if (val === null || val === undefined) {
+        html += '<td class="null-val">NULL</td>';
+      } else if (typeof val === 'object' && val instanceof Uint8Array) {
+        html += '<td style="color:var(--purple);">[BLOB ' + val.length + ' bytes]</td>';
+      } else {
+        const str = String(val);
+        const display = str.length > 100 ? str.substring(0, 100) + '...' : str;
+        // Highlight search matches
+        if (keyword && str.toLowerCase().includes(keyword)) {
+          const highlighted = highlightMatch(display, keyword);
+          html += '<td title="' + escapeHtml(str) + '">' + highlighted + '</td>';
+        } else {
+          html += '<td title="' + escapeHtml(str) + '">' + escapeHtml(display) + '</td>';
+        }
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  // Pagination info
+  if (DB_PAGE_SIZE > 0 && totalFiltered > pageSize) {
+    document.getElementById('dbPageInfo').textContent =
+      '第 ' + (dbCurrentPage + 1) + ' / ' + totalPages + ' 页 (共 ' + totalFiltered + ' 行)';
+    document.getElementById('dbPagination').style.display = 'flex';
+  } else {
+    document.getElementById('dbPageInfo').textContent = '共 ' + totalFiltered + ' 行';
+    document.getElementById('dbPagination').style.display = 'flex';
+  }
+}
+
+function highlightMatch(text, keyword) {
+  const lower = text.toLowerCase();
+  const idx = lower.indexOf(keyword);
+  if (idx < 0) return escapeHtml(text);
+  const before = text.substring(0, idx);
+  const match = text.substring(idx, idx + keyword.length);
+  const after = text.substring(idx + keyword.length);
+  return escapeHtml(before) + '<mark style="background:#fff3b0;padding:0 1px;border-radius:2px;">' + escapeHtml(match) + '</mark>' + escapeHtml(after);
+}
+
+function renderDbPage() {
+  dbCurrentPage = 0;
+  const searchEl = document.getElementById('dbDataSearch');
+  if (searchEl) searchEl.value = '';
+  loadDbTableData();
+}
+
+function renderDbQuery(sql, showPagination) {
+  try {
+    const result = dbInstance.exec(sql);
+    const wrap = document.getElementById('dbDataWrap');
+
+    if (!result.length || !result[0].values.length) {
+      wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-light);">无数据</div>';
+      document.getElementById('dbPagination').style.display = 'none';
+      return;
+    }
+
+    // Store for search
+    dbFilteredCols = result[0].columns;
+    dbFilteredRows = result[0].values;
+    dbTotalRows = dbFilteredRows.length;
+    dbCurrentPage = 0;
+
+    document.getElementById('dbDataToolbar').style.display = 'flex';
+    const searchEl = document.getElementById('dbDataSearch');
+    if (searchEl) searchEl.value = '';
+    document.getElementById('dbSearchStats').textContent = '';
+
+    renderDbDataView();
+  } catch(err) {
+    document.getElementById('dbDataWrap').innerHTML =
+      '<div style="padding:16px;color:var(--error);font-size:13px;">SQL 执行错误: ' + escapeHtml(err.message) + '</div>';
+    document.getElementById('dbPagination').style.display = 'none';
+  }
+}
+
+function execDbSql() {
+  if (!dbInstance) { showToast('请先加载数据库文件'); return; }
+  const sql = document.getElementById('dbSqlInput').value.trim();
+  if (!sql) { showToast('请输入 SQL 语句'); return; }
+  renderDbQuery(sql, false);
+}
+
+function resetDbQuery() {
+  if (!dbCurrentTable) return;
+  dbCurrentPage = 0;
+  document.getElementById('dbSqlInput').value = 'SELECT * FROM "' + dbCurrentTable.replace(/"/g, '""') + '"';
+  document.getElementById('dbDataSearch').value = '';
+  loadDbTableData();
+}
+
+function dbPagePrev() {
+  if (dbCurrentPage > 0) {
+    dbCurrentPage--;
+    renderDbDataView();
+  }
+}
+
+function dbPageNext() {
+  const keyword = (document.getElementById('dbDataSearch')?.value || '').toLowerCase().trim();
+  let total = dbFilteredRows ? dbFilteredRows.length : 0;
+  if (keyword && dbFilteredRows) {
+    total = dbFilteredRows.filter(row =>
+      row.some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(keyword))
+    ).length;
+  }
+  const pageSize = DB_PAGE_SIZE > 0 ? DB_PAGE_SIZE : total;
+  const totalPages = Math.ceil(total / pageSize);
+  if (dbCurrentPage < totalPages - 1) {
+    dbCurrentPage++;
+    renderDbDataView();
+  }
+}
+
+// Init db dropzone and load saved path
+document.addEventListener('DOMContentLoaded', function() {
+  setupDbDropzone();
+  loadDbPathSetting();
+});
+
+// Also listen for keydown in SQL input
+document.addEventListener('DOMContentLoaded', function() {
+  const sqlInput = document.getElementById('dbSqlInput');
+  if (sqlInput) {
+    sqlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') execDbSql();
+    });
+  }
+});
+
+// ==================== Tab 8: Server JSON ====================
+let sjDirHandle = null;
+let sjFileList = [];       // [{ name, size, handle }]
+let sjCurrentFile = '';
+let sjCurrentData = null;  // parsed JSON
+let sjAllRows = [];        // flattened rows for array JSON
+let sjAllCols = [];        // column names
+let sjPage = 0;
+let SJ_PAGE_SIZE = 200;
+
+// --- IndexedDB for dir handle ---
+function saveSjDirHandle(handle) {
+  return openDbHandleStore().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'sjDirHandle');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  });
+}
+function loadSjDirHandle() {
+  return openDbHandleStore().then(db => {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('sjDirHandle');
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  });
+}
+
+// --- Path persistence ---
+function loadSjPathSetting() {
+  const saved = localStorage.getItem('sj_folder_path');
+  if (saved) document.getElementById('sjPathInput').value = saved;
+}
+
+// --- Pick folder ---
+function pickSjFolder() {
+  if (!window.showDirectoryPicker) {
+    showToast('当前浏览器不支持文件夹选择，请使用 Chrome 或 Edge');
+    return;
+  }
+  window.showDirectoryPicker().then(handle => {
+    sjDirHandle = handle;
+    saveSjDirHandle(handle).catch(() => {});
+    document.getElementById('sjPathInput').value = handle.name;
+    localStorage.setItem('sj_folder_path', handle.name);
+    const saved = document.getElementById('sjPathSaved');
+    saved.classList.add('show');
+    setTimeout(() => saved.classList.remove('show'), 1500);
+    readSjFolder(handle);
+  }).catch(err => {
+    if (err.name !== 'AbortError') showToast('选择文件夹失败');
+  });
+}
+
+// --- Refresh ---
+function refreshSjFolder() {
+  if (sjDirHandle) {
+    readFromSjHandle(sjDirHandle);
+    return;
+  }
+  loadSjDirHandle().then(handle => {
+    if (handle) {
+      sjDirHandle = handle;
+      readFromSjHandle(handle);
+    } else {
+      showToast('无缓存的文件夹，请重新选择');
+      pickSjFolder();
+    }
+  }).catch(() => {
+    showToast('无缓存的文件夹，请重新选择');
+    pickSjFolder();
+  });
+}
+
+function readFromSjHandle(handle) {
+  handle.queryPermission({ mode: 'read' }).then(perm => {
+    if (perm === 'granted') return readSjFolder(handle);
+    return handle.requestPermission({ mode: 'read' }).then(p => {
+      if (p === 'granted') return readSjFolder(handle);
+      throw new Error('denied');
+    });
+  }).catch(err => {
+    showToast('文件夹访问被拒绝，请重新选择');
+    pickSjFolder();
+  });
+}
+
+// --- Read all JSON files from dir ---
+async function readSjFolder(dirHandle) {
+  document.getElementById('sjLoading').style.display = 'block';
+  document.getElementById('sjContent').style.display = 'none';
+  sjFileList = [];
+  sjCurrentFile = '';
+  sjCurrentData = null;
+  sjAllRows = [];
+  sjAllCols = [];
+
+  try {
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.json')) {
+        const file = await entry.getFile();
+        sjFileList.push({ name: entry.name, size: file.size, handle: entry });
+      }
+    }
+    sjFileList.sort((a, b) => a.name.localeCompare(b.name));
+
+    document.getElementById('sjPathInput').value = dirHandle.name;
+    localStorage.setItem('sj_folder_path', dirHandle.name);
+
+    const totalSize = sjFileList.reduce((s, f) => s + f.size, 0);
+    const sizeStr = totalSize < 1024 ? totalSize + ' B'
+      : totalSize < 1048576 ? (totalSize / 1024).toFixed(1) + ' KB'
+      : (totalSize / 1048576).toFixed(1) + ' MB';
+    document.getElementById('sjFolderStats').innerHTML =
+      '文件夹：<span>' + escapeHtml(dirHandle.name) + '</span> | JSON 文件：<span>' + sjFileList.length + ' 个</span> | 总大小：<span>' + sizeStr + '</span>';
+    document.getElementById('sjFolderStats').style.display = 'block';
+
+    document.getElementById('sjLoading').style.display = 'none';
+    document.getElementById('sjContent').style.display = 'block';
+
+    // Clear search
+    const searchEl = document.getElementById('sjFileSearch');
+    if (searchEl) searchEl.value = '';
+
+    filterSjFiles();
+
+    if (sjFileList.length > 0) {
+      selectSjFile(sjFileList[0].name);
+    }
+    showToast('已加载 ' + sjFileList.length + ' 个 JSON 文件');
+  } catch(err) {
+    document.getElementById('sjLoading').style.display = 'none';
+    showToast('读取文件夹失败: ' + err.message);
+    console.error(err);
+  }
+}
+
+// --- Sidebar file list with fuzzy search ---
+function filterSjFiles() {
+  const keyword = (document.getElementById('sjFileSearch')?.value || '').trim();
+  const container = document.getElementById('sjFileList');
+  if (!container) return;
+
+  let results;
+  if (!keyword) {
+    results = sjFileList.map(f => ({ ...f, highlighted: escapeHtml(f.name), score: 0 }));
+  } else {
+    results = [];
+    sjFileList.forEach(f => {
+      const fm = fuzzyMatch(f.name, keyword);
+      if (fm.match) results.push({ ...f, highlighted: fm.highlighted, score: fm.score });
+    });
+    results.sort((a, b) => b.score - a.score);
+  }
+
+  let html = '';
+  results.forEach(f => {
+    const active = f.name === sjCurrentFile ? ' active' : '';
+    const sizeStr = f.size < 1024 ? f.size + 'B'
+      : f.size < 1048576 ? (f.size / 1024).toFixed(0) + 'K'
+      : (f.size / 1048576).toFixed(1) + 'M';
+    html += '<div class="sj-file-item' + active + '" onclick="selectSjFile(\'' + escapeHtml(f.name.replace(/'/g, "\\'")) + '\')">' +
+      '<span class="sj-icon">📄</span>' +
+      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escapeHtml(f.name) + '">' + f.highlighted + '</span>' +
+      '<span class="sj-size">' + sizeStr + '</span>' +
+      '</div>';
+  });
+  if (results.length === 0) {
+    html = '<div style="padding:12px 14px;font-size:12px;color:#999;">未匹配到文件</div>';
+  }
+  container.innerHTML = html;
+}
+
+// --- Select and read a JSON file ---
+async function selectSjFile(name) {
+  const entry = sjFileList.find(f => f.name === name);
+  if (!entry) return;
+  sjCurrentFile = name;
+  sjPage = 0;
+
+  filterSjFiles(); // update highlight
+
+  // Clear data search
+  const searchEl = document.getElementById('sjDataSearch');
+  if (searchEl) searchEl.value = '';
+  document.getElementById('sjSearchStats').textContent = '';
+
+  document.getElementById('sjFileInfo').style.display = 'flex';
+  document.getElementById('sjFileName').textContent = name;
+
+  try {
+    const file = await entry.handle.getFile();
+    const text = await file.text();
+    const sizeStr = file.size < 1024 ? file.size + ' B'
+      : file.size < 1048576 ? (file.size / 1024).toFixed(1) + ' KB'
+      : (file.size / 1048576).toFixed(1) + ' MB';
+    document.getElementById('sjFileMeta').textContent = sizeStr;
+
+    sjCurrentData = JSON.parse(text);
+
+    // Determine display mode
+    if (Array.isArray(sjCurrentData) && sjCurrentData.length > 0 && typeof sjCurrentData[0] === 'object' && sjCurrentData[0] !== null) {
+      // Array of objects → table view
+      sjAllCols = [];
+      const colSet = new Set();
+      sjCurrentData.forEach(item => {
+        if (item && typeof item === 'object') {
+          Object.keys(item).forEach(k => { if (!colSet.has(k)) { colSet.add(k); sjAllCols.push(k); } });
+        }
+      });
+      sjAllRows = sjCurrentData.map(item => {
+        return sjAllCols.map(c => {
+          const v = item ? item[c] : undefined;
+          if (v === undefined || v === null) return null;
+          if (typeof v === 'object') return JSON.stringify(v);
+          return v;
+        });
+      });
+      document.getElementById('sjDataToolbar').style.display = 'flex';
+      renderSjDataView();
+    } else {
+      // Non-array or primitive → JSON tree view
+      sjAllCols = [];
+      sjAllRows = [];
+      document.getElementById('sjDataToolbar').style.display = 'none';
+      document.getElementById('sjPagination').style.display = 'none';
+      const wrap = document.getElementById('sjDataWrap');
+      wrap.innerHTML = '<div class="json-line">' + renderJsonTree(sjCurrentData, 0) + '</div>';
+    }
+  } catch(err) {
+    document.getElementById('sjDataWrap').innerHTML =
+      '<div style="padding:16px;color:var(--error);font-size:13px;">JSON 解析失败: ' + escapeHtml(err.message) + '</div>';
+    document.getElementById('sjDataToolbar').style.display = 'none';
+    document.getElementById('sjPagination').style.display = 'none';
+  }
+}
+
+// --- Data search ---
+function filterSjData() {
+  sjPage = 0;
+  renderSjDataView();
+}
+
+// --- Page size ---
+function changeSjPageSize() {
+  SJ_PAGE_SIZE = parseInt(document.getElementById('sjPageSizeSelect').value);
+  sjPage = 0;
+  renderSjDataView();
+}
+
+// --- Render data table with search + pagination ---
+function renderSjDataView() {
+  if (!sjAllRows.length || !sjAllCols.length) return;
+  const wrap = document.getElementById('sjDataWrap');
+  const keyword = (document.getElementById('sjDataSearch')?.value || '').toLowerCase().trim();
+
+  let rows = sjAllRows;
+  if (keyword) {
+    rows = rows.filter(row =>
+      row.some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(keyword))
+    );
+  }
+
+  const totalFiltered = rows.length;
+  const statsEl = document.getElementById('sjSearchStats');
+  statsEl.textContent = keyword ? '匹配 ' + totalFiltered + ' / ' + sjAllRows.length + ' 条' : '';
+
+  if (totalFiltered === 0) {
+    wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-light);">' + (keyword ? '未搜索到匹配数据' : '无数据') + '</div>';
+    document.getElementById('sjPagination').style.display = 'none';
+    return;
+  }
+
+  const pageSize = SJ_PAGE_SIZE > 0 ? SJ_PAGE_SIZE : totalFiltered;
+  const totalPages = Math.ceil(totalFiltered / pageSize);
+  if (sjPage >= totalPages) sjPage = totalPages - 1;
+  if (sjPage < 0) sjPage = 0;
+  const startIdx = sjPage * pageSize;
+  const pageRows = rows.slice(startIdx, startIdx + pageSize);
+
+  let html = '<table><thead><tr>';
+  html += '<th style="width:50px;text-align:center;">#</th>';
+  sjAllCols.forEach(c => { html += '<th>' + escapeHtml(String(c)) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  pageRows.forEach((row, i) => {
+    html += '<tr>';
+    html += '<td style="text-align:center;color:#999;">' + (startIdx + i + 1) + '</td>';
+    row.forEach(val => {
+      if (val === null || val === undefined) {
+        html += '<td class="null-val" style="color:#ccc;font-style:italic;">NULL</td>';
+      } else {
+        const str = String(val);
+        const display = str.length > 100 ? str.substring(0, 100) + '...' : str;
+        if (keyword && str.toLowerCase().includes(keyword)) {
+          html += '<td title="' + escapeHtml(str) + '">' + highlightMatch(display, keyword) + '</td>';
+        } else {
+          html += '<td title="' + escapeHtml(str) + '">' + escapeHtml(display) + '</td>';
+        }
+      }
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  if (SJ_PAGE_SIZE > 0 && totalFiltered > pageSize) {
+    document.getElementById('sjPageInfo').textContent =
+      '第 ' + (sjPage + 1) + ' / ' + totalPages + ' 页 (共 ' + totalFiltered + ' 条)';
+    document.getElementById('sjPagination').style.display = 'flex';
+  } else {
+    document.getElementById('sjPageInfo').textContent = '共 ' + totalFiltered + ' 条';
+    document.getElementById('sjPagination').style.display = 'flex';
+  }
+}
+
+function sjPagePrev() {
+  if (sjPage > 0) { sjPage--; renderSjDataView(); }
+}
+
+function sjPageNext() {
+  const keyword = (document.getElementById('sjDataSearch')?.value || '').toLowerCase().trim();
+  let total = sjAllRows.length;
+  if (keyword) {
+    total = sjAllRows.filter(row =>
+      row.some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(keyword))
+    ).length;
+  }
+  const pageSize = SJ_PAGE_SIZE > 0 ? SJ_PAGE_SIZE : total;
+  const totalPages = Math.ceil(total / pageSize);
+  if (sjPage < totalPages - 1) { sjPage++; renderSjDataView(); }
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  loadSjPathSetting();
+});
 
 // ==================== Init ====================
 initAttrRefTable();
