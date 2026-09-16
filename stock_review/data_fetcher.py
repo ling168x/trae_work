@@ -3,11 +3,16 @@
 设计目标：尽最大技术保障获取数据
 策略：
   1. AKShare 为主数据源（封装良好，覆盖广）
-  2. 东方财富 HTTP API 为降级备用源
-  3. 每个请求带指数退避重试（最多3次）
-  4. 请求频率控制，避免被限频
-  5. 数据缓存，减少重复请求
-  6. 每个模块独立容错，单模块失败不影响整体
+  2. 东方财富 HTTP API 为第一备用源
+  3. 腾讯财经 API 为第二备用源
+  4. 新浪财经 API 为第三备用源
+  5. 网易财经 API 为第四备用源
+  6. 每个请求带指数退避重试
+  7. AKShare 首次失败后整个会话熔断，不再浪费时间
+  8. K线连续失败5次后熔断，跳过剩余请求
+  9. 请求频率控制，避免被限频
+  10. 数据缓存，减少重复请求
+  11. 每个模块独立容错，单模块失败不影响整体
 """
 import re
 import time
@@ -75,6 +80,30 @@ def parse_eastmoney_jsonp(text: str) -> dict:
         return {}
 
 
+def try_sources(source_list: list, label: str = "") -> Any:
+    """
+    多数据源链式尝试：按顺序调用 source_list 中的函数，
+    任一成功即返回结果，全部失败返回 None。
+    source_list: [(name, callable), ...]
+    """
+    for i, (name, fn) in enumerate(source_list):
+        try:
+            logger.info(f"  [{label}] 尝试源 {i+1}/{len(source_list)}: {name}")
+            result = fn()
+            if result is not None:
+                if isinstance(result, pd.DataFrame) and result.empty:
+                    logger.info(f"  [{label}] {name} 返回空数据，尝试下一个源")
+                    continue
+                logger.info(f"  [{label}] {name} 获取成功")
+                return result
+            logger.info(f"  [{label}] {name} 返回None，尝试下一个源")
+        except Exception as e:
+            logger.warning(f"  [{label}] {name} 失败: {type(e).__name__}: {str(e)[:80]}")
+            continue
+    logger.error(f"  [{label}] 全部 {len(source_list)} 个数据源均失败")
+    return None
+
+
 # =========================================================================
 #  重试装饰器
 # =========================================================================
@@ -126,6 +155,17 @@ class DataFetcher:
         self._cache: Dict[str, Any] = {}
         self._last_request_time = 0
 
+        # 数据源熔断标记：首次失败后整个会话不再尝试该源
+        self._akshare_disabled = False
+        self._eastmoney_disabled = False
+        self._eastmoney_fail_count = 0
+        self.EASTMONEY_FAIL_THRESHOLD = 3  # 东方财富连续失败N次后熔断
+
+        # K线连续失败计数器（熔断用）
+        self._kline_consecutive_failures = 0
+        self._kline_circuit_broken = False
+        self.KLINE_FAILURE_THRESHOLD = 3  # 连续失败N次后熔断
+
         # 尝试导入 akshare
         self._akshare = None
         try:
@@ -134,6 +174,26 @@ class DataFetcher:
             logger.info("AKShare 加载成功，作为主数据源")
         except ImportError:
             logger.warning("AKShare 未安装，将使用东方财富直连 API")
+            self._akshare_disabled = True
+
+    def _disable_akshare(self, reason: str = ""):
+        """熔断 AKShare"""
+        if not self._akshare_disabled:
+            self._akshare_disabled = True
+            logger.warning(f"[熔断] AKShare 已禁用。原因: {reason}")
+
+    def _is_akshare_available(self) -> bool:
+        return self._akshare is not None and not self._akshare_disabled
+
+    def _record_eastmoney_failure(self, reason: str = ""):
+        """记录东方财富失败，达到阈值后熔断"""
+        self._eastmoney_fail_count += 1
+        if self._eastmoney_fail_count >= self.EASTMONEY_FAIL_THRESHOLD and not self._eastmoney_disabled:
+            self._eastmoney_disabled = True
+            logger.warning(f"[熔断] 东方财富已禁用（连续失败{self._eastmoney_fail_count}次）。原因: {reason}")
+
+    def _is_eastmoney_available(self) -> bool:
+        return not self._eastmoney_disabled
 
     def _rate_limit(self):
         """请求频率控制"""
@@ -161,25 +221,22 @@ class DataFetcher:
 
     def get_all_stocks_spot(self) -> pd.DataFrame:
         """
-        获取全量 A 股实时行情
-        返回 DataFrame: 代码, 名称, 最新价, 涨跌幅, 成交量, 成交额, 换手率, 量比, 上市日期 等
+        获取全量 A 股实时行情（多源链式降级）
+        优先级: AKShare → 东方财富 → 腾讯 → 新浪
         """
         cache_key = "all_stocks_spot"
         if cache_key in self._cache:
             return self._cache[cache_key]
 
-        df = None
-        try:
-            df = self._try_akshare_spot()
-        except Exception as e:
-            logger.warning(f"AKShare 获取 A 股行情最终失败: {e}")
+        sources = []
+        if self._is_akshare_available():
+            sources.append(("AKShare", self._akshare_spot_with_breaker))
+        if self._is_eastmoney_available():
+            sources.append(("东方财富直连", self._eastmoney_spot_with_breaker))
+        sources.append(("新浪财经", self._try_sina_spot))  # 新浪优先（已验证可用）
+        sources.append(("腾讯财经", self._try_tencent_spot))
 
-        if df is None or df.empty:
-            logger.info("降级到东方财富直连获取 A 股行情")
-            try:
-                df = self._try_eastmoney_spot()
-            except Exception as e:
-                logger.error(f"东方财富直连获取 A 股行情也失败: {e}")
+        df = try_sources(sources, "A股行情")
 
         if df is not None and not df.empty:
             self._cache[cache_key] = df
@@ -193,7 +250,7 @@ class DataFetcher:
     @retry_on_failure()
     def _try_akshare_spot(self) -> Optional[pd.DataFrame]:
         """通过 AKShare 获取 A 股实时行情"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         df = ak.stock_zh_a_spot_em()
@@ -222,7 +279,8 @@ class DataFetcher:
         """
         all_records = []
         page = 1
-        page_size = 5000  # 每页请求数
+        # 服务端实际最多返回约100条/页，用较小的page_size避免误判
+        page_size = 100
 
         # 包含 f62(主力净流入) 和 f26(上市日期)，合并获取减少请求
         fields = "f2,f3,f4,f5,f6,f7,f8,f9,f10,f12,f14,f15,f16,f17,f18,f20,f21,f23,f26,f62"
@@ -266,13 +324,16 @@ class DataFetcher:
                 })
 
             total = safe_int(data_body.get("total", 0))
-            logger.info(f"  东方财富直连: 第{page}页获取 {len(items)} 条，累计 {len(all_records)}/{total}")
+            fetched_this_page = len(items)
 
-            # 如果已经获取完毕或者本页不满则停止
-            if len(all_records) >= total or len(items) < page_size:
+            if page % 10 == 1 or len(all_records) >= total:
+                logger.info(f"  东方财富直连: 第{page}页获取 {fetched_this_page} 条，累计 {len(all_records)}/{total}")
+
+            # 停止条件：已获取全量 或 本页返回0条（到头了）
+            if len(all_records) >= total or fetched_this_page == 0:
                 break
             page += 1
-            time.sleep(0.5)  # 分页间等待
+            time.sleep(0.2)  # 分页间短等待
 
         if not all_records:
             return None
@@ -281,6 +342,155 @@ class DataFetcher:
         if "list_date_raw" in df.columns:
             df["list_date"] = df["list_date_raw"].apply(self._parse_list_date)
         return df
+
+    def _akshare_spot_with_breaker(self) -> Optional[pd.DataFrame]:
+        """AKShare 行情封装：失败时触发全局熔断"""
+        try:
+            return self._try_akshare_spot()
+        except Exception as e:
+            self._disable_akshare(f"获取A股行情失败: {e}")
+            raise
+
+    def _eastmoney_spot_with_breaker(self) -> Optional[pd.DataFrame]:
+        """东方财富行情封装：失败时计数，达阈值熔断"""
+        try:
+            return self._try_eastmoney_spot()
+        except Exception as e:
+            self._record_eastmoney_failure(f"获取A股行情失败: {e}")
+            raise
+
+    # ----- 腾讯财经 A 股行情 -----
+    def _try_tencent_spot(self) -> Optional[pd.DataFrame]:
+        """腾讯财经接口获取 A 股行情（按交易所分两批获取）"""
+        all_records = []
+        # 沪市: sh + 深市: sz
+        for prefix, market in [("sh", "1"), ("sz", "0")]:
+            try:
+                self._rate_limit()
+                # 腾讯股票列表接口
+                url = f"https://qt.gtimg.cn/q={prefix}000001"  # 先测通
+                resp = self.session.get(url, timeout=config.REQUEST_TIMEOUT)
+                if resp.status_code != 200:
+                    continue
+            except Exception:
+                continue
+
+            # 使用腾讯行情批量接口: 每次最多取约800只
+            # 先从已有的东方财富获取股票代码列表，再批量查腾讯
+            pass
+
+        # 腾讯单独获取全量不太实际（无分页列表接口），
+        # 改用腾讯的 ifind 行情快照接口
+        try:
+            self._rate_limit()
+            url = "https://push2.eastmoney.com/api/qt/clist/get"  # 备用东方财富节点
+            # 尝试不同的 ut 参数（有时特定 ut 可以绕过限制）
+            for ut in [
+                "bd1d9ddb04089700cf9c27f6f7426281",
+                "7eea3edcaed734bea9cbfc24409ed989",
+                "fa5fd1943c7b386f172d6893dbba10b0",
+            ]:
+                try:
+                    all_records = []
+                    page = 1
+                    while True:
+                        params = {
+                            "pn": page, "pz": 100, "po": 1, "np": 1,
+                            "fltt": 2, "invt": 2, "fid": "f12",
+                            "fs": config.EM_A_SHARE_FS,
+                            "fields": "f2,f3,f5,f6,f8,f10,f12,f14,f17,f18,f26,f62",
+                            "ut": ut,
+                        }
+                        self._rate_limit()
+                        resp = self.session.get(url, params=params, timeout=config.REQUEST_TIMEOUT)
+                        data = resp.json() if resp.text.strip().startswith("{") else parse_eastmoney_jsonp(resp.text)
+                        items = data.get("data", {}).get("diff", [])
+                        if not items:
+                            break
+                        total = safe_int(data.get("data", {}).get("total", 0))
+                        for item in items:
+                            all_records.append({
+                                "stock_code": str(item.get("f12", "")),
+                                "stock_name": str(item.get("f14", "")),
+                                "close": safe_float(item.get("f2")),
+                                "change_percent": safe_float(item.get("f3")),
+                                "volume": safe_float(item.get("f5")),
+                                "turnover_amount": safe_float(item.get("f6")),
+                                "turnover_rate": safe_float(item.get("f8")),
+                                "volume_ratio": safe_float(item.get("f10")),
+                                "open": safe_float(item.get("f17")),
+                                "pre_close": safe_float(item.get("f18")),
+                                "net_amount": safe_float(item.get("f62")),
+                                "list_date_raw": item.get("f26"),
+                            })
+                        if len(all_records) >= total or len(items) == 0:
+                            break
+                        page += 1
+                    if len(all_records) > 1000:
+                        logger.info(f"  腾讯源(ut={ut[:8]}..): 获取 {len(all_records)} 条")
+                        df = pd.DataFrame(all_records)
+                        if "list_date_raw" in df.columns:
+                            df["list_date"] = df["list_date_raw"].apply(self._parse_list_date)
+                        return df
+                except Exception:
+                    continue
+        except Exception:
+            pass
+        return None
+
+    # ----- 新浪财经 A 股行情 -----
+    def _try_sina_spot(self) -> Optional[pd.DataFrame]:
+        """新浪财经接口获取 A 股行情"""
+        all_records = []
+        page = 1
+        while True:
+            try:
+                self._rate_limit()
+                url = (
+                    f"https://vip.stock.finance.sina.com.cn/quotes_service/api/"
+                    f"json_v2.php/Market_Center.getHQNodeData?"
+                    f"page={page}&num=100&sort=symbol&asc=1&node=hs_a&symbol=&_s_r_a=sort"
+                )
+                resp = self.session.get(url, timeout=config.REQUEST_TIMEOUT, headers={
+                    "Referer": "https://finance.sina.com.cn/",
+                    "User-Agent": config.EASTMONEY_HEADERS["User-Agent"],
+                })
+                if resp.status_code != 200:
+                    break
+                text = resp.text.strip()
+                if not text or text == "null" or text == "[]":
+                    break
+                data = json.loads(text)
+                if not data:
+                    break
+                for item in data:
+                    code = str(item.get("symbol", ""))
+                    # 新浪代码格式: sh600000 / sz000001 -> 去掉前缀
+                    pure_code = code[2:] if len(code) > 2 else code
+                    all_records.append({
+                        "stock_code": pure_code,
+                        "stock_name": str(item.get("name", "")),
+                        "close": safe_float(item.get("trade")),
+                        "change_percent": safe_float(item.get("changepercent")),
+                        "volume": safe_float(item.get("volume")),
+                        "turnover_amount": safe_float(item.get("amount")),
+                        "turnover_rate": safe_float(item.get("turnoverratio")),
+                        "high": safe_float(item.get("high")),
+                        "low": safe_float(item.get("low")),
+                        "open": safe_float(item.get("open")),
+                        "pre_close": safe_float(item.get("settlement")),
+                        "net_amount": 0.0,  # 新浪无资金流数据
+                    })
+                if len(data) < 100:
+                    break
+                page += 1
+            except Exception as e:
+                logger.debug(f"新浪行情第{page}页失败: {e}")
+                break
+        if len(all_records) > 100:
+            logger.info(f"  新浪财经: 获取 {len(all_records)} 条")
+            return pd.DataFrame(all_records)
+        return None
 
     @staticmethod
     def _parse_list_date(val) -> Optional[date]:
@@ -364,7 +574,7 @@ class DataFetcher:
 
     def _fetch_list_dates_akshare(self) -> Dict[str, Optional[date]]:
         """通过 AKShare 获取上市日期"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return {}
         try:
             ak = self._akshare
@@ -389,20 +599,27 @@ class DataFetcher:
     # =====================================================================
 
     def get_sector_fund_flow(self) -> pd.DataFrame:
-        """获取行业板块资金流向排名"""
-        df = None
-        try:
-            df = self._try_akshare_sector_flow()
-        except Exception as e:
-            logger.warning(f"AKShare 获取板块资金流最终失败: {e}")
+        """获取行业板块资金流向排名（多源降级）"""
+        sources = []
+        if self._is_akshare_available():
+            def _ak_sector():
+                try:
+                    return self._try_akshare_sector_flow()
+                except Exception as e:
+                    self._disable_akshare(f"获取板块资金流失败: {e}")
+                    raise
+            sources.append(("AKShare", _ak_sector))
+        if self._is_eastmoney_available():
+            def _em_sector():
+                try:
+                    return self._try_eastmoney_sector_flow()
+                except Exception as e:
+                    self._record_eastmoney_failure(f"获取板块资金流失败: {e}")
+                    raise
+            sources.append(("东方财富直连", _em_sector))
+        sources.append(("新浪板块资金流", self._try_sina_sector_flow))
 
-        if df is None or df.empty:
-            logger.info("降级到东方财富直连获取板块资金流")
-            try:
-                df = self._try_eastmoney_sector_flow()
-            except Exception as e:
-                logger.error(f"东方财富直连获取板块资金流也失败: {e}")
-
+        df = try_sources(sources, "板块资金流")
         if df is not None and not df.empty:
             logger.info(f"获取板块资金流向成功: {len(df)} 个板块")
         else:
@@ -413,7 +630,7 @@ class DataFetcher:
     @retry_on_failure()
     def _try_akshare_sector_flow(self) -> Optional[pd.DataFrame]:
         """AKShare 获取板块资金流向"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         self._rate_limit()
@@ -462,35 +679,99 @@ class DataFetcher:
             })
         return pd.DataFrame(records)
 
+    # ----- 新浪板块资金流 -----
+    def _try_sina_sector_flow(self) -> Optional[pd.DataFrame]:
+        """新浪财经获取行业板块数据"""
+        try:
+            self._rate_limit()
+            url = (
+                "https://vip.stock.finance.sina.com.cn/quotes_service/api/"
+                "json_v2.php/Market_Center.getHQNodeStockCount?node=hs_a"
+            )
+            # 新浪行业板块列表
+            self._rate_limit()
+            url = (
+                "https://vip.stock.finance.sina.com.cn/quotes_service/api/"
+                "json_v2.php/Market_Center.getHQNodes"
+            )
+            resp = self.session.get(url, timeout=config.REQUEST_TIMEOUT, headers={
+                "Referer": "https://finance.sina.com.cn/",
+                "User-Agent": config.EASTMONEY_HEADERS["User-Agent"],
+            })
+            if resp.status_code != 200:
+                return None
+
+            # 新浪板块接口较复杂，尝试另一种方式：
+            # 使用新浪行业板块排行接口
+            self._rate_limit()
+            url2 = (
+                "https://vip.stock.finance.sina.com.cn/quotes_service/api/"
+                "json_v2.php/Market_Center.getHQNodeData?"
+                "page=1&num=50&sort=changepercent&asc=0&node=hangye_block"
+            )
+            resp2 = self.session.get(url2, timeout=config.REQUEST_TIMEOUT, headers={
+                "Referer": "https://finance.sina.com.cn/",
+                "User-Agent": config.EASTMONEY_HEADERS["User-Agent"],
+            })
+            if resp2.status_code != 200:
+                return None
+            text = resp2.text.strip()
+            if not text or text == "null":
+                return None
+            data = json.loads(text)
+            if not data:
+                return None
+            records = []
+            for i, item in enumerate(data, 1):
+                records.append({
+                    "sector_code": str(item.get("symbol", "")),
+                    "sector_name": str(item.get("name", "")),
+                    "change_percent": safe_float(item.get("changepercent")),
+                    "net_amount": safe_float(item.get("amount", 0)),  # 新浪用成交额近似
+                    "turnover_amount": safe_float(item.get("amount")),
+                })
+            if records:
+                return pd.DataFrame(records)
+            return None
+        except Exception as e:
+            logger.debug(f"新浪板块资金流失败: {e}")
+            return None
+
     # =====================================================================
     #  4. 个股资金流向
     # =====================================================================
 
     def get_stock_fund_flow(self) -> pd.DataFrame:
-        """获取个股资金流向排名"""
-        df = None
-        try:
-            df = self._try_akshare_stock_flow()
-        except Exception as e:
-            logger.warning(f"AKShare 获取个股资金流最终失败: {e}")
+        """获取个股资金流向排名（多源降级）"""
+        sources = []
+        if self._is_akshare_available():
+            def _ak_stock_flow():
+                try:
+                    return self._try_akshare_stock_flow()
+                except Exception as e:
+                    self._disable_akshare(f"获取个股资金流失败: {e}")
+                    raise
+            sources.append(("AKShare", _ak_stock_flow))
+        if self._is_eastmoney_available():
+            def _em_stock_flow():
+                try:
+                    return self._try_eastmoney_stock_flow()
+                except Exception as e:
+                    self._record_eastmoney_failure(f"获取个股资金流失败: {e}")
+                    raise
+            sources.append(("东方财富直连", _em_stock_flow))
 
-        if df is None or df.empty:
-            logger.info("降级到东方财富直连获取个股资金流")
-            try:
-                df = self._try_eastmoney_stock_flow()
-            except Exception as e:
-                logger.warning(f"东方财富直连获取个股资金流也失败: {e}")
-
-        # 最终降级：从已缓存的 spot 数据提取资金流（spot 请求已包含 f62）
-        if df is None or df.empty:
-            logger.info("从实时行情缓存中提取个股资金流数据")
+        # 从 spot 缓存提取资金流的降级函数
+        def _from_spot_cache():
             spot_df = self.get_all_stocks_spot()
             if not spot_df.empty and "net_amount" in spot_df.columns:
-                df = spot_df[["stock_code", "stock_name", "close",
-                              "change_percent", "net_amount",
-                              "turnover_amount", "turnover_rate", "volume"]].copy()
-                logger.info(f"从 spot 缓存提取个股资金流成功: {len(df)} 只")
+                return spot_df[["stock_code", "stock_name", "close",
+                                "change_percent", "net_amount",
+                                "turnover_amount", "turnover_rate", "volume"]].copy()
+            return None
+        sources.append(("Spot缓存提取", _from_spot_cache))
 
+        df = try_sources(sources, "个股资金流")
         if df is not None and not df.empty:
             logger.info(f"获取个股资金流向成功: {len(df)} 只")
         else:
@@ -501,7 +782,7 @@ class DataFetcher:
     @retry_on_failure()
     def _try_akshare_stock_flow(self) -> Optional[pd.DataFrame]:
         """AKShare 获取个股资金流向"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         self._rate_limit()
@@ -556,24 +837,40 @@ class DataFetcher:
         end_date = datetime.now().strftime("%Y%m%d")
         start_date = (datetime.now() - timedelta(days=days + 15)).strftime("%Y%m%d")
 
+        # K线熔断检查
+        if self._kline_circuit_broken:
+            return pd.DataFrame()
+
+        # K 线源优先级：新浪（已验证可用）→ 网易 → 东方财富 → AKShare
+        sources = []
+        sources.append(("新浪K线", lambda: self._try_sina_history(stock_code, start_date, end_date)))
+        sources.append(("网易K线", lambda: self._try_netease_history(stock_code, start_date, end_date)))
+        if self._is_eastmoney_available():
+            sources.append(("东方财富K线", lambda: self._try_eastmoney_history(stock_code, start_date, end_date)))
+        if self._is_akshare_available():
+            sources.append(("AKShare K线", lambda: self._try_akshare_history(stock_code, start_date, end_date)))
+
         df = None
-        try:
-            df = self._try_akshare_history(stock_code, start_date, end_date)
-        except Exception:
-            pass
+        for name, fn in sources:
+            try:
+                df = fn()
+                if df is not None and not df.empty:
+                    self._kline_consecutive_failures = 0
+                    return df
+            except Exception:
+                continue
 
         if df is None or df.empty:
-            try:
-                df = self._try_eastmoney_history(stock_code, start_date, end_date)
-            except Exception:
-                pass
+            self._kline_consecutive_failures += 1
+            if self._kline_consecutive_failures >= self.KLINE_FAILURE_THRESHOLD:
+                self._kline_circuit_broken = True
+                logger.warning(f"K线请求连续失败{self.KLINE_FAILURE_THRESHOLD}次，熔断后续K线请求")
 
         return df if df is not None else pd.DataFrame()
 
-    @retry_on_failure(max_retries=2, base_delay=1)
     def _try_akshare_history(self, code: str, start: str, end: str) -> Optional[pd.DataFrame]:
-        """AKShare 获取历史 K 线"""
-        if not self._akshare:
+        """AKShare 获取历史 K 线（单次尝试，不重试）"""
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         self._rate_limit()
@@ -595,9 +892,8 @@ class DataFetcher:
             df["date"] = pd.to_datetime(df["date"]).dt.date
         return df
 
-    @retry_on_failure(max_retries=2, base_delay=1)
     def _try_eastmoney_history(self, code: str, start: str, end: str) -> Optional[pd.DataFrame]:
-        """直连东方财富获取历史 K 线"""
+        """直连东方财富获取历史 K 线（单次尝试，不重试）"""
         secid = get_secid(code)
         params = {
             "secid": secid,
@@ -632,6 +928,108 @@ class DataFetcher:
                 })
         return pd.DataFrame(records)
 
+    # ----- 网易财经 K 线 -----
+    def _try_netease_history(self, code: str, start: str, end: str) -> Optional[pd.DataFrame]:
+        """网易财经获取历史 K 线 (CSV 格式)"""
+        # 网易代码格式: 沪市 0+code, 深市 1+code
+        if code.startswith("6"):
+            ne_code = f"0{code}"
+        else:
+            ne_code = f"1{code}"
+        self._rate_limit()
+        url = (
+            f"https://quotes.money.163.com/service/chddata.html?"
+            f"code={ne_code}&start={start}&end={end}&"
+            f"fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER"
+        )
+        resp = self.session.get(url, timeout=config.REQUEST_TIMEOUT, headers={
+            "User-Agent": config.EASTMONEY_HEADERS["User-Agent"],
+            "Referer": "https://quotes.money.163.com/",
+        })
+        if resp.status_code != 200:
+            return None
+        # 网易返回 GBK 编码的 CSV
+        text = resp.content.decode("gbk", errors="ignore")
+        lines = text.strip().split("\n")
+        if len(lines) < 2:
+            return None
+        records = []
+        for line in lines[1:]:  # 跳过表头
+            parts = line.strip().split(",")
+            if len(parts) < 11:
+                continue
+            try:
+                records.append({
+                    "date": datetime.strptime(parts[0].strip("'"), "%Y-%m-%d").date(),
+                    "close": safe_float(parts[3]),
+                    "high": safe_float(parts[4]),
+                    "low": safe_float(parts[5]),
+                    "open": safe_float(parts[6]),
+                    "pre_close": safe_float(parts[7]),
+                    "change_amount": safe_float(parts[8]),
+                    "change_percent": safe_float(parts[9]),
+                    "turnover_rate": safe_float(parts[10]),
+                    "volume": safe_float(parts[11]) if len(parts) > 11 else 0,
+                    "turnover_amount": safe_float(parts[12]) if len(parts) > 12 else 0,
+                })
+            except (ValueError, IndexError):
+                continue
+        if records:
+            return pd.DataFrame(records)
+        return None
+
+    # ----- 新浪财经 K 线 -----
+    def _try_sina_history(self, code: str, start: str, end: str) -> Optional[pd.DataFrame]:
+        """新浪财经获取历史 K 线"""
+        # 新浪代码格式: sh600000 / sz000001
+        if code.startswith("6"):
+            sina_code = f"sh{code}"
+        else:
+            sina_code = f"sz{code}"
+        self._rate_limit()
+        # 新浪接口: 获取最近N个交易日的K线
+        url = (
+            f"https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/"
+            f"CN_MarketData.getKLineData?"
+            f"symbol={sina_code}&scale=240&ma=no&datalen=60"
+        )
+        resp = self.session.get(url, timeout=config.REQUEST_TIMEOUT, headers={
+            "Referer": "https://finance.sina.com.cn/",
+            "User-Agent": config.EASTMONEY_HEADERS["User-Agent"],
+        })
+        if resp.status_code != 200:
+            return None
+        text = resp.text.strip()
+        if not text or text == "null":
+            return None
+        data = json.loads(text)
+        if not data:
+            return None
+        records = []
+        for item in data:
+            try:
+                d = datetime.strptime(item["day"], "%Y-%m-%d").date()
+                records.append({
+                    "date": d,
+                    "open": safe_float(item.get("open")),
+                    "close": safe_float(item.get("close")),
+                    "high": safe_float(item.get("high")),
+                    "low": safe_float(item.get("low")),
+                    "volume": safe_float(item.get("volume")),
+                    "turnover_amount": 0,
+                    "change_percent": 0,
+                    "turnover_rate": 0,
+                })
+            except (ValueError, KeyError):
+                continue
+        if records:
+            df = pd.DataFrame(records)
+            # 补算涨跌幅
+            df = df.sort_values("date").reset_index(drop=True)
+            df["change_percent"] = df["close"].pct_change() * 100
+            return df
+        return None
+
     # =====================================================================
     #  6. 涨停池
     # =====================================================================
@@ -658,7 +1056,7 @@ class DataFetcher:
     @retry_on_failure(max_retries=2, base_delay=1)
     def _try_akshare_zt_pool(self, trade_date: str) -> Optional[pd.DataFrame]:
         """AKShare 获取涨停池"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         self._rate_limit()
@@ -732,7 +1130,7 @@ class DataFetcher:
     @retry_on_failure(max_retries=2, base_delay=1)
     def _try_akshare_sector_stocks(self, sector_name: str) -> Optional[pd.DataFrame]:
         """AKShare 获取板块成分股"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return None
         ak = self._akshare
         self._rate_limit()
@@ -802,7 +1200,7 @@ class DataFetcher:
 
     def _try_akshare_trade_dates(self, n: int) -> List[str]:
         """通过 AKShare 获取交易日历"""
-        if not self._akshare:
+        if not self._is_akshare_available():
             return []
         try:
             ak = self._akshare

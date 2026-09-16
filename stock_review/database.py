@@ -145,6 +145,47 @@ class StockBasicInfo(Base):
         }
 
 
+class StockDailyQuote(Base):
+    """个股日 K 线行情持久化表 - 全量存储所有股票每日数据"""
+    __tablename__ = "stock_daily_quote"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    stock_code = Column(String(10), nullable=False, index=True)
+    trade_date = Column(Date, nullable=False, index=True)
+    open = Column(Float, default=0.0)
+    close = Column(Float, default=0.0)
+    high = Column(Float, default=0.0)
+    low = Column(Float, default=0.0)
+    volume = Column(Float, default=0.0)           # 成交量(股)
+    turnover_amount = Column(Float, default=0.0)  # 成交额(元)
+    change_percent = Column(Float, default=0.0)   # 涨跌幅(%)
+    change_amount = Column(Float, default=0.0)    # 涨跌额
+    amplitude = Column(Float, default=0.0)        # 振幅(%)
+    turnover_rate = Column(Float, default=0.0)    # 换手率(%)
+
+    __table_args__ = (
+        UniqueConstraint("stock_code", "trade_date", name="uq_daily_quote"),
+        Index("idx_quote_date", "trade_date"),
+        Index("idx_quote_code_date", "stock_code", "trade_date"),
+    )
+
+
+class SyncLog(Base):
+    """同步状态记录表 - 跟踪全量/增量同步进度"""
+    __tablename__ = "sync_log"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    sync_type = Column(String(20), nullable=False)       # full / incremental
+    status = Column(String(20), nullable=False)          # running / completed / failed
+    total_stocks = Column(Integer, default=0)
+    synced_stocks = Column(Integer, default=0)
+    failed_stocks = Column(Integer, default=0)
+    start_time = Column(DateTime, default=datetime.now)
+    end_time = Column(DateTime, nullable=True)
+    last_synced_code = Column(String(10), default="")    # 断点续传用
+    extra_info = Column(Text, default="{}")
+
+
 class DatabaseManager:
     """数据库管理器 - 封装所有数据库操作"""
 
@@ -366,5 +407,209 @@ class DatabaseManager:
                 (StockBasicInfo.is_sub_new_stock == True)
             ).all()
             return {r[0] for r in records}
+        finally:
+            session.close()
+
+    # ===== K 线行情持久化操作 =====
+
+    def save_stock_daily_quotes(self, stock_code: str, records: list):
+        """批量保存单只股票的日K线数据（UPSERT: 已有则跳过）"""
+        if not records:
+            return 0
+        session = self.get_session()
+        inserted = 0
+        try:
+            for r in records:
+                td = r.get("date") or r.get("trade_date")
+                if td is None:
+                    continue
+                if isinstance(td, str):
+                    td = datetime.strptime(td[:10], "%Y-%m-%d").date()
+                # 检查是否已存在（用 exists 查询更快）
+                exists = session.query(StockDailyQuote.id).filter_by(
+                    stock_code=stock_code, trade_date=td
+                ).first()
+                if exists:
+                    continue
+                obj = StockDailyQuote(
+                    stock_code=stock_code,
+                    trade_date=td,
+                    open=r.get("open", 0),
+                    close=r.get("close", 0),
+                    high=r.get("high", 0),
+                    low=r.get("low", 0),
+                    volume=r.get("volume", 0),
+                    turnover_amount=r.get("turnover_amount", 0),
+                    change_percent=r.get("change_percent", 0),
+                    change_amount=r.get("change_amount", 0),
+                    amplitude=r.get("amplitude", 0),
+                    turnover_rate=r.get("turnover_rate", 0),
+                )
+                session.add(obj)
+                inserted += 1
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.debug(f"保存K线失败 {stock_code}: {e}")
+        finally:
+            session.close()
+        return inserted
+
+    def save_stock_daily_quotes_bulk(self, stock_code: str, records: list):
+        """高性能批量写入（先删再插，适用于全量同步）"""
+        if not records:
+            return
+        session = self.get_session()
+        try:
+            dates = []
+            for r in records:
+                td = r.get("date") or r.get("trade_date")
+                if td and isinstance(td, str):
+                    td = datetime.strptime(td[:10], "%Y-%m-%d").date()
+                if td:
+                    dates.append(td)
+            if dates:
+                min_date, max_date = min(dates), max(dates)
+                # 删除该股票这个日期范围内的旧数据
+                session.query(StockDailyQuote).filter(
+                    StockDailyQuote.stock_code == stock_code,
+                    StockDailyQuote.trade_date >= min_date,
+                    StockDailyQuote.trade_date <= max_date,
+                ).delete()
+            for r in records:
+                td = r.get("date") or r.get("trade_date")
+                if td is None:
+                    continue
+                if isinstance(td, str):
+                    td = datetime.strptime(td[:10], "%Y-%m-%d").date()
+                obj = StockDailyQuote(
+                    stock_code=stock_code, trade_date=td,
+                    open=r.get("open", 0), close=r.get("close", 0),
+                    high=r.get("high", 0), low=r.get("low", 0),
+                    volume=r.get("volume", 0),
+                    turnover_amount=r.get("turnover_amount", 0),
+                    change_percent=r.get("change_percent", 0),
+                    change_amount=r.get("change_amount", 0),
+                    amplitude=r.get("amplitude", 0),
+                    turnover_rate=r.get("turnover_rate", 0),
+                )
+                session.add(obj)
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            logger.debug(f"批量保存K线失败 {stock_code}: {e}")
+        finally:
+            session.close()
+
+    def get_stock_kline(self, stock_code: str, days: int = 30) -> list:
+        """从本地DB获取个股K线数据（最近N个交易日）"""
+        session = self.get_session()
+        try:
+            records = session.query(StockDailyQuote).filter(
+                StockDailyQuote.stock_code == stock_code
+            ).order_by(
+                StockDailyQuote.trade_date.desc()
+            ).limit(days).all()
+            result = []
+            for r in reversed(records):  # 按日期正序返回
+                result.append({
+                    "date": r.trade_date,
+                    "open": r.open, "close": r.close,
+                    "high": r.high, "low": r.low,
+                    "volume": r.volume,
+                    "turnover_amount": r.turnover_amount,
+                    "change_percent": r.change_percent,
+                    "change_amount": r.change_amount,
+                    "amplitude": r.amplitude,
+                    "turnover_rate": r.turnover_rate,
+                })
+            return result
+        finally:
+            session.close()
+
+    def get_stock_kline_count(self, stock_code: str) -> int:
+        """查询某只股票已有多少条K线数据"""
+        session = self.get_session()
+        try:
+            return session.query(StockDailyQuote).filter_by(stock_code=stock_code).count()
+        finally:
+            session.close()
+
+    def get_kline_latest_date(self, stock_code: str = None) -> date:
+        """查询K线库中最新的交易日期"""
+        session = self.get_session()
+        try:
+            q = session.query(StockDailyQuote.trade_date)
+            if stock_code:
+                q = q.filter_by(stock_code=stock_code)
+            result = q.order_by(StockDailyQuote.trade_date.desc()).first()
+            return result[0] if result else None
+        finally:
+            session.close()
+
+    def get_kline_stock_count(self) -> int:
+        """查询K线库中有多少只股票的数据"""
+        session = self.get_session()
+        try:
+            from sqlalchemy import func
+            result = session.query(func.count(func.distinct(StockDailyQuote.stock_code))).scalar()
+            return result or 0
+        finally:
+            session.close()
+
+    def get_all_stock_codes(self) -> list:
+        """获取基础信息表中所有股票代码"""
+        session = self.get_session()
+        try:
+            records = session.query(StockBasicInfo.stock_code).all()
+            return [r[0] for r in records]
+        finally:
+            session.close()
+
+    # ===== 同步日志操作 =====
+
+    def create_sync_log(self, sync_type: str, total: int) -> int:
+        """创建同步日志记录，返回 id"""
+        session = self.get_session()
+        try:
+            log = SyncLog(sync_type=sync_type, status="running", total_stocks=total)
+            session.add(log)
+            session.commit()
+            return log.id
+        finally:
+            session.close()
+
+    def update_sync_log(self, log_id: int, **kwargs):
+        """更新同步日志"""
+        session = self.get_session()
+        try:
+            log = session.query(SyncLog).get(log_id)
+            if log:
+                for k, v in kwargs.items():
+                    if hasattr(log, k):
+                        setattr(log, k, v)
+                session.commit()
+        finally:
+            session.close()
+
+    def get_last_sync(self, sync_type: str = None) -> dict:
+        """获取最近一次同步记录"""
+        session = self.get_session()
+        try:
+            q = session.query(SyncLog)
+            if sync_type:
+                q = q.filter_by(sync_type=sync_type)
+            log = q.order_by(SyncLog.id.desc()).first()
+            if log:
+                return {
+                    "id": log.id, "sync_type": log.sync_type,
+                    "status": log.status, "total_stocks": log.total_stocks,
+                    "synced_stocks": log.synced_stocks,
+                    "failed_stocks": log.failed_stocks,
+                    "start_time": str(log.start_time),
+                    "end_time": str(log.end_time) if log.end_time else None,
+                    "last_synced_code": log.last_synced_code,
+                }
+            return {}
         finally:
             session.close()

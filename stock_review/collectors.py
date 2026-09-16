@@ -12,6 +12,7 @@ import numpy as np
 import config
 from data_fetcher import DataFetcher, safe_float
 from filters import StockFilter
+from database import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +21,20 @@ class ReviewCollector:
     """
     复盘数据采集总控
     负责调度 9 个子模块，汇总结果
+    优先从本地 DB 读取 K 线，DB 无数据时才调 API
     """
 
-    def __init__(self, fetcher: DataFetcher, stock_filter: StockFilter):
+    def __init__(self, fetcher: DataFetcher, stock_filter: StockFilter,
+                 db: DatabaseManager = None):
         self.fetcher = fetcher
         self.filter = stock_filter
+        self.db = db  # 本地数据库（用于读取持久化的K线）
         self._spot_df: Optional[pd.DataFrame] = None
         self._sector_flow_df: Optional[pd.DataFrame] = None
         self._stock_flow_df: Optional[pd.DataFrame] = None
         self._sector_map: Dict[str, str] = {}
+        self._kline_from_db = 0   # 统计：从DB读取的K线数
+        self._kline_from_api = 0  # 统计：从API拉取的K线数
 
     def _ensure_base_data(self):
         """确保基础数据已加载"""
@@ -51,6 +57,71 @@ class ReviewCollector:
             if not r.get("sector_name"):
                 r["sector_name"] = self._get_sector_for_stock(r.get("stock_code", ""))
         return records
+
+    def _get_kline_smart(self, stock_code: str, days: int = 30) -> pd.DataFrame:
+        """
+        智能获取K线：优先从本地DB读取，不足时从API拉取并存入DB
+        """
+        # 1. 尝试从本地 DB 读取
+        if self.db:
+            records = self.db.get_stock_kline(stock_code, days)
+            if len(records) >= days - 2:  # 允许少2天（周末/节假日）
+                self._kline_from_db += 1
+                return pd.DataFrame(records)
+
+        # 2. DB 不足，从 API 拉取
+        df = self.fetcher.get_stock_history(stock_code, days)
+        if df is not None and not df.empty:
+            self._kline_from_api += 1
+            # 同时存入 DB（下次不用再拉）
+            if self.db:
+                try:
+                    self.db.save_stock_daily_quotes(stock_code, df.to_dict("records"))
+                except Exception:
+                    pass
+        return df if df is not None else pd.DataFrame()
+
+    def _batch_get_kline_smart(self, codes: List[str], days: int = 30,
+                                progress_callback=None) -> Dict[str, pd.DataFrame]:
+        """
+        批量智能获取K线：DB有的直接读，没有的走API
+        """
+        result = {}
+        db_hit = 0
+        api_need = []
+
+        # 第一轮：从 DB 读取
+        if self.db:
+            for code in codes:
+                records = self.db.get_stock_kline(code, days)
+                if len(records) >= days - 2:
+                    result[code] = pd.DataFrame(records)
+                    db_hit += 1
+                else:
+                    api_need.append(code)
+        else:
+            api_need = list(codes)
+
+        if db_hit > 0:
+            logger.info(f"  K线本地DB命中: {db_hit} 只，需API拉取: {len(api_need)} 只")
+
+        # 第二轮：从 API 拉取（带熔断）
+        if api_need:
+            api_result = self.fetcher.batch_get_stock_history(
+                api_need, days=days, progress_callback=progress_callback
+            )
+            # 拉到的存入 DB
+            for code, df in api_result.items():
+                result[code] = df
+                if self.db and not df.empty:
+                    try:
+                        self.db.save_stock_daily_quotes(code, df.to_dict("records"))
+                    except Exception:
+                        pass
+
+        self._kline_from_db += db_hit
+        self._kline_from_api += len(api_need) - (len(api_need) - len([c for c in api_need if c in result]))
+        return result
 
     # =================================================================
     #  模块 1 & 2: 资金流入/流出前十板块
@@ -293,16 +364,16 @@ class ReviewCollector:
                             "trade_date": trade_date,
                         })
                 else:
-                    # 没有龙头数据也保留板块记录
+                    # 没有龙头数据也保留板块记录，用 sector_code 做唯一标识避免DB冲突
                     records.append({
                         "sector_name": sector_name,
                         "sector_code": sector_code,
                         "sector_net_amount": safe_float(sector_row.get("net_amount")),
                         "sector_change_percent": safe_float(sector_row.get("change_percent")),
-                        "stock_code": "",
-                        "stock_name": "",
-                        "net_amount": 0,
-                        "change_percent": 0,
+                        "stock_code": f"SECTOR_{sector_code or sector_name}",
+                        "stock_name": f"[板块]{sector_name}",
+                        "net_amount": safe_float(sector_row.get("net_amount")),
+                        "change_percent": safe_float(sector_row.get("change_percent")),
                         "turnover_amount": 0,
                         "turnover_rate": 0,
                         "trade_date": trade_date,
@@ -371,16 +442,20 @@ class ReviewCollector:
             # 过滤ST/新股/次新股
             df = self.filter.filter_dataframe(df, code_col="stock_code")
 
-            # 预筛选：量比 > 1 且涨幅合理（减少需要获取K线的股票数量）
-            if "volume_ratio" in df.columns:
-                df["volume_ratio"] = pd.to_numeric(df["volume_ratio"], errors="coerce").fillna(0)
-                df = df[df["volume_ratio"] >= config.VOLUME_RATIO_THRESHOLD]
-            if "change_percent" in df.columns:
-                df["change_percent"] = pd.to_numeric(df["change_percent"], errors="coerce").fillna(0)
-                df = df[(df["change_percent"] > -5) & (df["change_percent"] < 11)]
+            # 预筛选：减少需要获取K线的股票数量
             if "close" in df.columns:
                 df["close"] = pd.to_numeric(df["close"], errors="coerce").fillna(0)
                 df = df[df["close"] > 0]  # 排除停牌
+            if "change_percent" in df.columns:
+                df["change_percent"] = pd.to_numeric(df["change_percent"], errors="coerce").fillna(0)
+                # MA5上穿MA10场景：涨幅通常为正且不太大
+                df = df[(df["change_percent"] > 0) & (df["change_percent"] < 8)]
+            if "volume_ratio" in df.columns:
+                df["volume_ratio"] = pd.to_numeric(df["volume_ratio"], errors="coerce").fillna(0)
+                df = df[df["volume_ratio"] >= config.VOLUME_RATIO_THRESHOLD]
+            if "turnover_rate" in df.columns:
+                df["turnover_rate"] = pd.to_numeric(df["turnover_rate"], errors="coerce").fillna(0)
+                df = df[df["turnover_rate"] > 0.5]  # 有一定换手率
 
             candidates = df["stock_code"].astype(str).tolist()
             logger.info(f"[模块6] MA交叉预筛选: {len(candidates)} 只候选")
@@ -389,13 +464,13 @@ class ReviewCollector:
                 return []
 
             # 限制数量，避免请求过多
-            candidates = candidates[:500]
+            candidates = candidates[:300]
 
             # 批量获取K线
             def progress(done, total):
                 logger.info(f"[模块6] 获取K线进度: {done}/{total}")
 
-            history_map = self.fetcher.batch_get_stock_history(
+            history_map = self._batch_get_kline_smart(
                 candidates, days=25, progress_callback=progress
             )
 
@@ -648,7 +723,7 @@ class ReviewCollector:
             def progress(done, total):
                 logger.info(f"[模块9] 获取K线进度: {done}/{total}")
 
-            history_map = self.fetcher.batch_get_stock_history(
+            history_map = self._batch_get_kline_smart(
                 candidates, days=15, progress_callback=progress
             )
 
@@ -842,6 +917,9 @@ class ReviewCollector:
 
         # 统计
         total_records = sum(len(v) for v in result.values() if isinstance(v, list))
-        logger.info(f"========== 复盘采集完成: 共 {total_records} 条记录 ==========")
+        logger.info(
+            f"========== 复盘采集完成: 共 {total_records} 条记录 "
+            f"(K线: DB命中{self._kline_from_db} API拉取{self._kline_from_api}) =========="
+        )
 
         return result
